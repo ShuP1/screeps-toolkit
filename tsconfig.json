@@ -1,0 +1,30 @@
+{
+  "include": ["src"],
+  "exclude": ["**/*.test.ts"],
+  "compilerOptions": {
+    "module": "esnext",
+    "lib": ["es6"],
+    "target": "es6",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "baseUrl": "src/",
+    "strict": true,
+    "sourceMap": true,
+    "declaration": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true
+  },
+  "typedocOptions": {
+    "entryPoints": ["src"],
+    "exclude": ["**/*.test.ts"],
+    "entryPointStrategy": "expand",
+    "name": "Screeps Toolkit",
+    "navigationLinks": {
+      "npm": "https://www.npmjs.com/package/screeps-toolkit",
+      "GitHub": "https://github.com/ShuP1/screeps-toolkit"
+    },
+    "plugin": ["typedoc-theme-hierarchy"],
+    "theme": "hierarchy"
+  }
+}
