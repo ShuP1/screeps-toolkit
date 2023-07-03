@@ -1,4 +1,4 @@
-import { HasPos } from "position/types"
+import { HasPos } from "../position/types"
 
 /**
  * Generate string for a clickable link to the given room
