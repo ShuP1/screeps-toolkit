@@ -14,7 +14,8 @@
     "test:lint": "eslint --ignore-path .gitignore .",
     "test:format": "prettier --ignore-path .gitignore --check .",
     "format": "prettier --ignore-path .gitignore --write .",
-    "prepare": "run-s clean test build",
+    "format:changelog": "prettier --write ./CHANGELOG.md",
+    "prepack": "run-s format:changelog clean test build",
     "commit": "cz",
     "semantic-release": "semantic-release"
   },
