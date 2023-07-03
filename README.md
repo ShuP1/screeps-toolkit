@@ -13,4 +13,7 @@ Useful functions for your next screeps bot.
 
 ## Features
 
-- Incoming
+- Many common and useful functions
+- Fully typed and documented -> [TypeDoc](https://shup1.github.io/screeps-toolkit)
+- No hidden prototype changes (only in imports ending with `/prototypes`)
+- No hidden global changes (only in imports ending with `/global`)
