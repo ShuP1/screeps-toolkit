@@ -8,7 +8,9 @@ import { HasPos } from "../position/types"
  * @returns an html link string
  */
 export function getLinkToRoom(roomName: string, text: string, onClick = "") {
-  return `<a href="#!/room/${roomName}" onClick="${onClick}">${htmlEscape(text)}</a>`
+  return `<a href="#!/room/${Game.shard.name}/${roomName}" onClick="${onClick}">${htmlEscape(
+    text
+  )}</a>`
 }
 
 /**

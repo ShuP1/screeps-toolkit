@@ -111,7 +111,8 @@
     "preset": "ts-jest",
     "collectCoverage": true,
     "collectCoverageFrom": [
-      "**/*.ts"
+      "*.ts",
+      "{!(dist),}/**/*.ts"
     ]
   },
   "prettier": {
