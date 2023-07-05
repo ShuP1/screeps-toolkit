@@ -46,7 +46,7 @@ export function resetGame() {
   for (const f in Game.flags) {
     Game.flags[f].remove()
   }
-  ;(global as Partial<Record<string, unknown>>).Memory = {}
+  ;(global as unknown as Partial<Record<string, unknown>>).Memory = {}
   RawMemory.set("{}")
   Memory.creeps = {}
   Memory.rooms = {}

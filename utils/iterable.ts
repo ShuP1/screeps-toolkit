@@ -41,7 +41,12 @@ export function avg<T>(ts: Iterable<T>, map: (t: T) => number): number {
 export function count<T>(ts: Iterable<T>, pred: (t: T) => boolean = exists): number {
   return sum(ts, (t) => (pred(t) ? 1 : 0))
 }
-function exists<T>(t: T | undefined): t is T {
+/**
+ * Check the value is not undefined
+ * @param t value to check
+ * @returns is not undefined
+ */
+export function exists<T>(t: T | undefined): t is T {
   return t !== undefined
 }
 
@@ -131,7 +136,6 @@ export function* none<T>(): Generator<T> {
   /* */
 }
 
-export function filter<T, U extends T>(ts: Iterable<T>, pred: (t: T) => t is U): IterableIterator<U>
 /**
  * Returns the elements of an array that meet the condition specified in a callback function.
  * ```ts
@@ -147,8 +151,25 @@ export function* filter<T>(ts: Iterable<T>, pred: (t: T) => boolean): IterableIt
     if (pred(t)) yield t
   }
 }
+/**
+ * Returns the elements of an array that meet the condition specified in a callback function.
+ * ```ts
+ * ts.filter(pred)
+ * ```
+ * But also works with generators.
+ * @param ts list of things
+ * @param pred function to check if thing is valid
+ * @yields each valid thing
+ */
+export function* filterIs<T, U extends T>(
+  ts: Iterable<T>,
+  pred: (t: T) => t is U
+): IterableIterator<U> {
+  for (const t of ts) {
+    if (pred(t)) yield t
+  }
+}
 
-export function first<T, U extends T>(ts: Iterable<T>, pred: (t: T) => t is U): U | undefined
 /**
  * Returns the first thing which is valid.
  * @param ts list of things
@@ -161,9 +182,21 @@ export function first<T>(ts: Iterable<T>, pred: (t: T) => boolean): T | undefine
   }
   return undefined
 }
+/**
+ * Returns the first thing which is valid.
+ * @param ts list of things
+ * @param pred function to check if a thing is valid
+ * @returns a thing or undefined if none are valid
+ */
+export function firstIs<T, U extends T>(ts: Iterable<T>, pred: (t: T) => t is U): U | undefined {
+  for (const t of ts) {
+    if (pred(t)) return t
+  }
+  return undefined
+}
+
 export const collect = Array.from
 
-export function filterInPlace<T, U extends T>(ts: T[], pred: (t: T) => t is U): U[]
 /**
  * Filter an array without allocating a new one.
  * @param ts an array of things

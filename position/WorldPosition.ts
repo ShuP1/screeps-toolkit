@@ -62,3 +62,14 @@ export class WorldPosition {
     return `[world pos ${this.x},${this.y}]`
   }
 }
+
+/**
+ * Functional helper to compute a range between two {@link RoomPosition}.
+ * Support multi-room thanks to {@link WorldPosition}
+ * @param f initial position
+ * @returns a function taking position and returning the distance to {@link f}
+ */
+export function rangeTo(f: RoomPosition | HasPos) {
+  const fw = WorldPosition.fromRoom(f)
+  return (t: RoomPosition | HasPos) => fw.getRangeTo(WorldPosition.fromRoom(t))
+}

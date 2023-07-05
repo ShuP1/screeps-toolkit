@@ -47,3 +47,13 @@ export const ACTION_RANGE: Record<ActionConstant, number | undefined> = {
   fatigue: undefined,
   damage: undefined,
 }
+
+/** Power of RANGED_MASS_ATTACK, dependent on range */
+export const RANGED_MASS_ATTACK_POWER = { 1: 10, 2: 4, 3: 1 }
+/** Creep fatigue removal multiplier. Each move part remove this amount of fatigue */
+export const MOVE_FATIGUE_POWER = 2
+
+/** Additional creep hits for each bodypart */
+export const HITS_PER_PART = 100
+/** Additional power creep hits for each level */
+export const POWER_CREEP_HITS_PER_LEVEL = 1000

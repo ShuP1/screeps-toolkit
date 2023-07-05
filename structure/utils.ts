@@ -13,12 +13,10 @@ export function isStructureType<T extends keyof ConcreteStructureMap>(
 
 /**
  * Typed filter for {@link Room.find}
- * @example room.find(FIND_STRUCTURES, hasTypeFilter(STRUCTURE_CONTAINER))
+ * @example room.find(FIND_STRUCTURES, { filter: filterStructureType(STRUCTURE_CONTAINER) })
  * @param type structure type constant
  * @returns filter object
  */
 export function filterStructureType<T extends keyof ConcreteStructureMap>(type: T) {
-  return {
-    filter: ((s) => isStructureType(s, type)) as (s: Structure) => s is ConcreteStructureMap[T],
-  }
+  return ((s) => isStructureType(s, type)) as (s: Structure) => s is ConcreteStructureMap[T]
 }
