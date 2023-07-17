@@ -1,5 +1,3 @@
-import { HasPos } from "../position/types"
-
 /**
  * Generate string for a clickable link to the given room
  * @param roomName name of the target room
@@ -23,7 +21,7 @@ export function getLinkToRoom(roomName: string, text: string, onClick = "") {
  * @returns an html link string
  */
 export function getLinkToObject(
-  it: HasPos & _HasId,
+  it: _HasRoomPosition & _HasId,
   text: string,
   memWatch?: string | undefined | false
 ) {

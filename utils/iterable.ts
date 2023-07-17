@@ -1,3 +1,21 @@
+import { getOrSetMap } from "./map"
+
+/**
+ * Calls the specified callback function for all the elements in a list.
+ * The return value of the callback function is the accumulated result,
+ * and is provided as an argument in the next call to the callback function.
+ * `ts.reduce` But also works with generators.
+ * @param ts list of things
+ * @param acc function to accumulate a thing to
+ * @param initial accumulator start value
+ * @returns the accumulated total
+ */
+export function reduce<T, U>(ts: Iterable<T>, acc: (acc: U, t: T) => U, initial: U) {
+  let v = initial
+  for (const t of ts) v = acc(v, t)
+  return v
+}
+
 /**
  * Compute the sum of a list of things.
  * ```ts
@@ -176,7 +194,7 @@ export function* filterIs<T, U extends T>(
  * @param pred function to check if a thing is valid
  * @returns a thing or undefined if none are valid
  */
-export function first<T>(ts: Iterable<T>, pred: (t: T) => boolean): T | undefined {
+export function first<T>(ts: Iterable<T>, pred: (t: T) => boolean = exists): T | undefined {
   for (const t of ts) {
     if (pred(t)) return t
   }
@@ -216,6 +234,20 @@ export function filterInPlace<T>(ts: T[], pred: (t: T) => boolean) {
 }
 
 /**
+ * Create a map aka dictionary from a list.
+ * @param ts list of things
+ * @param key function to get the key from a thing
+ * @returns a map of keys and arrays of values
+ */
+export function groupBy<T, K>(ts: Iterable<T>, key: (t: T) => K) {
+  const map = new Map<K, T[]>()
+  for (const t of ts) {
+    getOrSetMap(map, key(t), () => []).push(t)
+  }
+  return map
+}
+
+/**
  * Select a random element in an array with uniform distribution.
  * @param ts an array of elements
  * @returns an element or undefined if array is empty
@@ -246,17 +278,4 @@ export function weightedRandomPick<T>(ts: readonly T[], weight: (t: T) => number
  */
 export function sort<T>(ts: T[], score: (t: T) => number): T[] {
   return ts.sort((a, b) => score(a) - score(b))
-}
-/**
- * Function wrap for map like with cached previous results.
- * @example sort(ts, cached(t => "heavy compute..."))
- * @param f function to wrap
- * @returns wrapped function
- */
-export function cached<T, U>(f: (t: T) => U) {
-  const cache = new Map<T, U>()
-  return (t: T) => {
-    if (!cache.has(t)) cache.set(t, f(t))
-    return cache.get(t) as U
-  }
 }

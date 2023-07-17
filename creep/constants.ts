@@ -52,6 +52,12 @@ export const ACTION_RANGE: Record<ActionConstant, number | undefined> = {
 export const RANGED_MASS_ATTACK_POWER = { 1: 10, 2: 4, 3: 1 }
 /** Creep fatigue removal multiplier. Each move part remove this amount of fatigue */
 export const MOVE_FATIGUE_POWER = 2
+/** Creep fatigue generation multiplier. Each non-move part add this amount of fatigue depending on terrain */
+export const TERRAIN_MOVE_FATIGUE = {
+  road: 1,
+  plain: 2,
+  swamp: 10,
+}
 
 /** Additional creep hits for each bodypart */
 export const HITS_PER_PART = 100

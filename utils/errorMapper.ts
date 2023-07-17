@@ -8,7 +8,7 @@ import { IS_SIM } from "./constants"
  * @param minimumBucket Skip source mapper if bucket is too low (default: 100)
  * @returns Wrapper function
  */
-export function errorMapperWrap(fn: () => void, minimumBucket = 100): () => void {
+export function wrapErrorMapper(fn: () => void, minimumBucket = 100): () => void {
   return () => {
     try {
       fn()

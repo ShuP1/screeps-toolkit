@@ -3,8 +3,6 @@ export interface Coordinates {
   x: number
   y: number
 }
-export interface HasPos {
-  pos: RoomPosition
-}
 
+/** A valid {@link Room.name} */
 export type RoomName = string & Tag.OpaqueTag<Room>

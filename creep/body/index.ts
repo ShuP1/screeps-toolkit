@@ -1,4 +1,4 @@
-import { ACTION_BODYPART, ActionConstant } from "../constants"
+import { ACTION_BODYPART, ActionConstant, MOVE_FATIGUE_POWER } from "../constants"
 
 /**
  * Count the number of bodyparts of a given type
@@ -70,3 +70,32 @@ export const getActiveBodypartsBoostEquivalent = (
 ) => getBodypartsBoostEquivalent(body, action)
 
 type BoostsBodypartType = Record<string, Record<ActionConstant, number>>
+
+/**
+ * Gets the move efficiency of a creep based on it's number of move parts and boost relative to it's size.
+ * @param creep target creep or powerCreep
+ * @returns the amount of terrain fatigue the creep can handle
+ */
+export function getMoveEfficiency(creep: Creep | PowerCreep) {
+  if (!("body" in creep)) return Infinity // no fatgiue! PowerCreep!
+  let activeMoveParts = 0
+  let nonMoveParts = 0
+  let used = creep.store.getUsedCapacity()
+  for (const b of creep.body) {
+    switch (b.type) {
+      case MOVE:
+        activeMoveParts += b.hits > 0 ? (b.boost ? BOOSTS[b.type][b.boost].fatigue : 1) : 0
+        break
+      case CARRY:
+        if (used > 0 && b.hits > 0) {
+          used -= b.boost ? BOOSTS[b.type][b.boost].capacity * CARRY_CAPACITY : CARRY_CAPACITY
+          nonMoveParts += 1
+        }
+        break
+      default:
+        nonMoveParts += 1
+        break
+    }
+  }
+  return nonMoveParts > 0 ? (activeMoveParts * MOVE_FATIGUE_POWER) / nonMoveParts : Infinity
+}

@@ -1,4 +1,4 @@
-import { HasPos, RoomName, Coordinates } from "./types"
+import { RoomName, Coordinates } from "./types"
 import { ROOM_MIN, ROOM_MAX, ROOM_SIZE } from "./constants"
 
 /**
@@ -16,7 +16,7 @@ export function isExit(at: Coordinates) {
  * @param it Object with a position
  * @returns The RoomPosition
  */
-export function normalizePos(it: RoomPosition | HasPos): RoomPosition {
+export function normalizePos(it: RoomPosition | _HasRoomPosition): RoomPosition {
   if (!(it instanceof RoomPosition)) {
     return it.pos
   }
@@ -129,5 +129,43 @@ const DIR_OFFSET: Record<DirectionConstant, Coordinates> = {
  * @returns destination position
  */
 export function getToDirection(pos: RoomPosition, d: DirectionConstant) {
-  return new RoomPosition(pos.x + DIR_OFFSET[d].x, pos.y + DIR_OFFSET[d].y, pos.roomName)
+  const x = pos.x + DIR_OFFSET[d].x
+  const y = pos.y + DIR_OFFSET[d].y
+  if (x < ROOM_MIN || y < ROOM_MIN || x > ROOM_MAX || y < ROOM_MAX) return undefined
+  return new RoomPosition(x, y, pos.roomName)
+}
+
+/**
+ * List all {@link RoomPosition} in a given square
+ * @param center middle point
+ * @param range positive integer
+ * @yields a valid position
+ */
+export function* inRoomRange(center: RoomPosition, range = 1) {
+  const mx = Math.min(ROOM_MAX, center.x + range)
+  const my = Math.min(ROOM_MAX, center.y + range)
+  for (let x = Math.max(ROOM_MIN, center.x - range); x <= mx; x++) {
+    for (let y = Math.max(ROOM_MIN, center.y - range); y <= my; y++) {
+      yield new RoomPosition(x, y, center.roomName)
+    }
+  }
+}
+
+/**
+ * Get all directions for nearest to oppositive of {@link d}.
+ * @param d nearest direction
+ * @returns a sorted array of directions
+ */
+export const getDirectionsSorted = (d: DirectionConstant) => [
+  d,
+  rotateDirection(d, 1),
+  rotateDirection(d, -1),
+  rotateDirection(d, 2),
+  rotateDirection(d, -2),
+  rotateDirection(d, 3),
+  rotateDirection(d, -3),
+  rotateDirection(d, 4),
+]
+function rotateDirection(d: DirectionConstant, n: number) {
+  return (((((d + n - 1) % 8) + 8) % 8) + 1) as DirectionConstant
 }

@@ -20,3 +20,26 @@ export function isStructureType<T extends keyof ConcreteStructureMap>(
 export function filterStructureType<T extends keyof ConcreteStructureMap>(type: T) {
   return ((s) => isStructureType(s, type)) as (s: Structure) => s is ConcreteStructureMap[T]
 }
+
+export class StructuresByType implements Iterable<[StructureConstant, readonly AnyStructure[]]> {
+  private map = new Map<StructureConstant, AnyStructure[]>()
+  readonly length: number
+
+  constructor(sts: AnyStructure[]) {
+    this.length = sts.length
+    for (const s of sts) {
+      const exists = this.map.get(s.structureType)
+      if (exists) {
+        exists.push(s)
+      } else {
+        this.map.set(s.structureType, [s])
+      }
+    }
+  }
+  [Symbol.iterator](): IterableIterator<[StructureConstant, AnyStructure[]]> {
+    return this.map.entries()
+  }
+  get<T extends StructureConstant>(type: T): ConcreteStructureMap[T][] {
+    return (this.map.get(type) as ConcreteStructureMap[T][] | undefined) ?? []
+  }
+}

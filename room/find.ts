@@ -1,4 +1,4 @@
-import { ROOM_MAX, ROOM_MIN } from "./constants"
+import { ROOM_MAX, ROOM_MIN } from "../position/constants"
 
 /**
  * Run {@link Room.lookAtArea} on a given range bounded to room borders

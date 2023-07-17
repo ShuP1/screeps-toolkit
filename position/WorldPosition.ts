@@ -1,10 +1,10 @@
 import { ROOM_MAX, ROOM_MIN } from "./constants"
-import { HasPos, RoomName } from "./types"
+import { RoomName } from "./types"
 import { getChebyshevDist, getDirectionTo, normalizePos, parseRoomName } from "./utils"
 
 /** Uniform screep's world position with E0S0 as origin. */
 export class WorldPosition {
-  constructor(readonly x: number, readonly y: number) {}
+  constructor(public x: number, public y: number) {}
 
   /**
    * Extract room name from this.
@@ -24,7 +24,7 @@ export class WorldPosition {
    * @param at Object containing a position
    * @returns this
    */
-  static fromRoom(at: RoomPosition | HasPos) {
+  static fromRoom(at: RoomPosition | _HasRoomPosition) {
     const { x, y, roomName } = normalizePos(at)
     if (x < ROOM_MIN || x > ROOM_MAX) throw new RangeError(`x value ${x} not in range`)
     if (y < ROOM_MIN || y > ROOM_MAX) throw new RangeError(`y value ${y} not in range`)
@@ -69,7 +69,7 @@ export class WorldPosition {
  * @param f initial position
  * @returns a function taking position and returning the distance to {@link f}
  */
-export function rangeTo(f: RoomPosition | HasPos) {
+export function rangeTo(f: RoomPosition | _HasRoomPosition) {
   const fw = WorldPosition.fromRoom(f)
-  return (t: RoomPosition | HasPos) => fw.getRangeTo(WorldPosition.fromRoom(t))
+  return (t: RoomPosition | _HasRoomPosition) => fw.getRangeTo(WorldPosition.fromRoom(t))
 }
