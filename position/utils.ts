@@ -131,7 +131,7 @@ const DIR_OFFSET: Record<DirectionConstant, Coordinates> = {
 export function getToDirection(pos: RoomPosition, d: DirectionConstant) {
   const x = pos.x + DIR_OFFSET[d].x
   const y = pos.y + DIR_OFFSET[d].y
-  if (x < ROOM_MIN || y < ROOM_MIN || x > ROOM_MAX || y < ROOM_MAX) return undefined
+  if (x < ROOM_MIN || y < ROOM_MIN || x > ROOM_MAX || y > ROOM_MAX) return undefined
   return new RoomPosition(x, y, pos.roomName)
 }
 

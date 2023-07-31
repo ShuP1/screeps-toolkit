@@ -18,13 +18,15 @@
     "entryPoints": ["."],
     "exclude": ["**/*.test.ts", "dist/**", "node_modules/**"],
     "entryPointStrategy": "expand",
+    "excludeReferences": true,
+    "externalLinkPath": "typedocLink.js",
     "name": "Screeps Toolkit",
     "navigationLinks": {
       "npm": "https://www.npmjs.com/package/screeps-toolkit",
       "GitHub": "https://github.com/ShuP1/screeps-toolkit"
     },
     "readme": "./README.md",
-    "plugin": ["typedoc-theme-hierarchy"],
+    "plugin": ["typedoc-theme-hierarchy", "typedoc-plugin-external-link"],
     "theme": "hierarchy"
   }
 }

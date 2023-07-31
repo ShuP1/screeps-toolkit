@@ -1,6 +1,17 @@
 import { ACTION_BODYPART, ActionConstant, MOVE_FATIGUE_POWER } from "../constants"
 
 /**
+ * Compute the energy cost of a creep body
+ * @param body Array of bodyparts {@link Creep.body}
+ * @returns Energy cost of this body
+ */
+export function getBodyCost(body: readonly (BodyPartDefinition | BodyPartConstant)[]) {
+  let sum = 0
+  for (const b of body) sum += BODYPART_COST[typeof b == "string" ? b : b.type]
+  return sum
+}
+
+/**
  * Count the number of bodyparts of a given type
  * @param body Array of bodyparts {@link Creep.body}
  * @param type Expected type

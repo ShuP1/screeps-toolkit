@@ -10,11 +10,13 @@ import { getOrSetMap } from "./map"
  * @param initial accumulator start value
  * @returns the accumulated total
  */
-export function reduce<T, U>(ts: Iterable<T>, acc: (acc: U, t: T) => U, initial: U) {
+export function reduce<T, U = T>(ts: Iterable<T>, acc: (acc: U, t: T) => U, initial: U) {
   let v = initial
   for (const t of ts) v = acc(v, t)
   return v
 }
+/** Data-last version of {@link reduce} */
+export const reduce_ = partial(reduce)
 
 /**
  * Compute the sum of a list of things.
@@ -31,6 +33,9 @@ export function sum<T>(ts: Iterable<T>, map: (t: T) => number): number {
   for (const t of ts) v += map(t)
   return v
 }
+/** Data-last version of {@link sum} */
+export const sum_ = partial1(sum)
+
 /**
  * Compute the average of a list of things.
  * ```ts
@@ -50,6 +55,9 @@ export function avg<T>(ts: Iterable<T>, map: (t: T) => number): number {
   }
   return count ? v / count : 0
 }
+/** Data-last version of {@link avg} */
+export const avg_ = partial1(avg)
+
 /**
  * Count values of a list of things also works with generators.
  * @param ts list of things
@@ -59,6 +67,9 @@ export function avg<T>(ts: Iterable<T>, map: (t: T) => number): number {
 export function count<T>(ts: Iterable<T>, pred: (t: T) => boolean = exists): number {
   return sum(ts, (t) => (pred(t) ? 1 : 0))
 }
+/** Data-last version of {@link count} */
+export const count_ = partial1(count)
+
 /**
  * Check the value is not undefined
  * @param t value to check
@@ -90,6 +101,9 @@ export function max<T>(
   }
   return res
 }
+/** Data-last version of {@link max} */
+export const max_ = partial(max)
+
 /**
  * Find the thing of a list with the lowest value also works with generators.
  * @param ts list of things
@@ -104,6 +118,8 @@ export function min<T>(
 ): T | undefined {
   return max(ts, (t) => -map(t), -maxE)
 }
+/** Data-last version of {@link min} */
+export const min_ = partial(min)
 
 /**
  * Calls a defined callback function on each element of a list.
@@ -120,6 +136,9 @@ export function* map<T, U>(ts: Iterable<T>, map: (t: T) => U): IterableIterator<
     yield map(t)
   }
 }
+/** Data-last version of {@link map} */
+export const map_ = partial1(map)
+
 /**
  * Calls a defined callback function on each element of a list.
  * ```ts
@@ -132,6 +151,9 @@ export function* map<T, U>(ts: Iterable<T>, map: (t: T) => U): IterableIterator<
 export function forEach<T>(ts: Iterable<T>, act: (t: T) => void) {
   for (const t of ts) act(t)
 }
+/** Data-last version of {@link forEach} */
+export const forEach_ = partial1(forEach)
+
 /**
  * Returns individual elements of each sub-array also works with generators.
  * @param tts nested list of things
@@ -149,6 +171,9 @@ export function* flatten<T>(...tts: Iterable<T>[]) {
 export function* flatMap<T, U>(ts: Iterable<T>, map: (t: T) => Iterable<U>) {
   for (const t of ts) yield* map(t)
 }
+/** Data-last version of {@link flatMap} */
+export const flatMap_ = partial1(flatMap)
+
 /** Empty generator */
 export function* none<T>(): Generator<T> {
   /* */
@@ -169,6 +194,9 @@ export function* filter<T>(ts: Iterable<T>, pred: (t: T) => boolean): IterableIt
     if (pred(t)) yield t
   }
 }
+/** Data-last version of {@link filter} */
+export const filter_ = partial1(filter)
+
 /**
  * Returns the elements of an array that meet the condition specified in a callback function.
  * ```ts
@@ -187,6 +215,8 @@ export function* filterIs<T, U extends T>(
     if (pred(t)) yield t
   }
 }
+/** Data-last version of {@link filterIs} */
+export const filterIs_ = partial1(filterIs)
 
 /**
  * Returns the first thing which is valid.
@@ -200,6 +230,9 @@ export function first<T>(ts: Iterable<T>, pred: (t: T) => boolean = exists): T |
   }
   return undefined
 }
+/** Data-last version of {@link first} */
+export const first_ = partial1(first)
+
 /**
  * Returns the first thing which is valid.
  * @param ts list of things
@@ -212,6 +245,8 @@ export function firstIs<T, U extends T>(ts: Iterable<T>, pred: (t: T) => t is U)
   }
   return undefined
 }
+/** Data-last version of {@link firstIs} */
+export const firstIs_ = partial1(firstIs)
 
 export const collect = Array.from
 
@@ -232,6 +267,8 @@ export function filterInPlace<T>(ts: T[], pred: (t: T) => boolean) {
   ts.length = j
   return ts
 }
+/** Data-last version of {@link filterInPlace} */
+export const filterInPlace_ = partial1(filterInPlace)
 
 /**
  * Create a map aka dictionary from a list.
@@ -246,6 +283,8 @@ export function groupBy<T, K>(ts: Iterable<T>, key: (t: T) => K) {
   }
   return map
 }
+/** Data-last version of {@link groupBy} */
+export const groupBy_ = partial1(groupBy)
 
 /**
  * Select a random element in an array with uniform distribution.
@@ -269,6 +308,8 @@ export function weightedRandomPick<T>(ts: readonly T[], weight: (t: T) => number
   }
   return undefined
 }
+/** Data-last version of {@link weightedRandomPick} */
+export const weightedRandomPick_ = partial1(weightedRandomPick)
 
 /**
  * Sorts an array in place by score ascending.
@@ -278,4 +319,81 @@ export function weightedRandomPick<T>(ts: readonly T[], weight: (t: T) => number
  */
 export function sort<T>(ts: T[], score: (t: T) => number): T[] {
   return ts.sort((a, b) => score(a) - score(b))
+}
+/** Data-last version of {@link sort} */
+export const sort_ = partial1(sort)
+
+export function pipe<A, B>(v: A, f1: (v: A) => B): B
+export function pipe<A, B, C>(v: A, f1: (v: A) => B, f2: (v: B) => C): C
+export function pipe<A, B, C, D>(v: A, f1: (v: A) => B, f2: (v: B) => C, f3: (v: C) => D): D
+export function pipe<A, B, C, D, E>(
+  v: A,
+  f1: (v: A) => B,
+  f2: (v: B) => C,
+  f3: (v: C) => D,
+  f4: (v: D) => E
+): E
+export function pipe<A, B, C, D, E, F>(
+  v: A,
+  f1: (v: A) => B,
+  f2: (v: B) => C,
+  f3: (v: C) => D,
+  f4: (v: D) => E,
+  f5: (v: E) => F
+): F
+export function pipe<A, B, C, D, E, F, G>(
+  v: A,
+  f1: (v: A) => B,
+  f2: (v: B) => C,
+  f3: (v: C) => D,
+  f4: (v: D) => E,
+  f5: (v: E) => F,
+  f6: (v: F) => G
+): G
+export function pipe<A, B, C, D, E, F, G, H>(
+  v: A,
+  f1: (v: A) => B,
+  f2: (v: B) => C,
+  f3: (v: C) => D,
+  f4: (v: D) => E,
+  f5: (v: E) => F,
+  f6: (v: F) => G,
+  f7: (v: G) => H
+): H
+/**
+ * Perform left-to-right function composition.
+ * @param v The initial value.
+ * @param fns the list of unary functions to apply.
+ * @returns `fns.reduce((acc, fn) => fn(acc), t)` with valid types.
+ * @example
+ * pipe(
+ *   [1, 2, 3, 4],
+ *   map._(x => x * 2),
+ *   arr => [arr[0] + arr[1], arr[2] + arr[3]],
+ * ) // => [6, 14]
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function pipe<A, Fns extends ((v: any) => any)[]>(v: A, ...fns: Fns) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  return fns.reduce((acc, fn) => fn(acc), v) as Fns extends [...infer _, (t: any) => infer R]
+    ? R
+    : A
+}
+
+/**
+ * Convert data-first function to data-last.
+ * @param fn a data-first function
+ * @returns a data-last function
+ * @example
+ * const powE = partial(Math.pow)(Math.E)
+ * powE(42) === Math.pow(42, Math.E)
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function partial<T, Ps extends any[], U>(fn: (t: T, ...ps: Ps) => U) {
+  return (...ps: Ps) =>
+    (t: T) =>
+      fn(t, ...ps)
+}
+function partial1<T, P, U>(fn: (t: T, p: P) => U) {
+  return (p: P) => (t: T) => fn(t, p)
 }

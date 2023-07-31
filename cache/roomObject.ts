@@ -28,24 +28,6 @@ export function restoreCachedObject<T extends CacheableObject>(
 ): T | null {
   return Game.getObjectById(o.id)
 }
-/**
- * Generate a function to convert a {@link CacheableObject} to {@link CachedObject}.
- * @param fields keys to cache in your object
- * @returns a mapper function
- */
-export function makeCachedObject<T extends CacheableObject, U extends CachedObject<T>>(
-  fields: (keyof T)[]
-) {
-  return (o: T) =>
-    fields.reduce(
-      (acc, field) => {
-        if (field != "room") acc[field] = o[field] as unknown as U[keyof T]
-        return acc
-      },
-      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
-      { id: o.id, pos: o.pos } as U
-    )
-}
 
 interface CacheOpts {
   /** Try to update the data if age is greater than this */
@@ -77,13 +59,16 @@ type FindCacheableConstant =
  */
 export function findCached<
   K extends FindCacheableConstant,
-  V extends FindTypes[K],
-  C extends CachedObject<V>
+  C extends CachedObject<V>,
+  V extends FindTypes[K] = FindTypes[K]
 >(
   type: K,
-  defaultOpts: CacheOpts & Partial<FilterOptions<K, V>> & { map?: (v: V) => C }
+  defaultOpts: CacheOpts &
+    Partial<FilterOptions<K, V>> &
+    PartialIfExtends<{ map: (v: V) => Untag<C> }, CachedObject<V>, C>
 ): (name: RoomName, opts?: CacheOpts) => readonly C[] {
   const cache = new Map<RoomName, [at: number, value: readonly C[]]>()
+  defaultOpts.map ??= ({ id, pos }) => ({ id, pos } as C)
   return (name, opts) => {
     const cached = cache.get(name)
     // Return cached if fresh
@@ -93,7 +78,7 @@ export function findCached<
     if (name in Game.rooms) {
       const value = Game.rooms[name]
         .find(type, defaultOpts.filter ? { filter: defaultOpts.filter } : undefined)
-        .map(defaultOpts.map ?? makeCachedObject([]))
+        .map(defaultOpts.map! as (v: V) => C)
       cache.set(name, [Game.time, value])
       return value
     }
@@ -102,3 +87,6 @@ export function findCached<
     return cached && (ttl == undefined || Game.time + ttl <= cached[0]) ? cached[1] : []
   }
 }
+
+type PartialIfExtends<T, A, B> = A extends B ? Partial<T> : T
+type Untag<T> = Omit<T, "OpaqueTagSymbol">

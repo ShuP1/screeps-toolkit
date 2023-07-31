@@ -1,3 +1,5 @@
+import { sum } from "../utils/iterable"
+
 /**
  * Typed check for {@link Structure.structureType}
  * @param s ths structure to check
@@ -43,3 +45,44 @@ export class StructuresByType implements Iterable<[StructureConstant, readonly A
     return (this.map.get(type) as ConcreteStructureMap[T][] | undefined) ?? []
   }
 }
+
+/**
+ * Compute a level comparable with {@link StructureController} level evaluating built structures.
+ * @param sbt storage of all structures by type
+ * @param requiredStructures structure types needed for a level to be complete
+ * @returns an object like {@link GlobalControlLevel}
+ */
+export function getStructuralLevel(
+  sbt: StructuresByType,
+  requiredStructures = defaultRequiredStructures
+) {
+  const maxLevel = 8
+  for (let l = 1; l <= maxLevel; l++) {
+    if (
+      !requiredStructures.every((type) => sbt.get(type).length >= CONTROLLER_STRUCTURES[type][l])
+    ) {
+      const progress = sum(
+        requiredStructures,
+        (type) => sbt.get(type).length * CONSTRUCTION_COST[type]
+      )
+      const progressTotal = sum(
+        requiredStructures,
+        (type) => (CONTROLLER_STRUCTURES[type][l] || 0) * CONSTRUCTION_COST[type]
+      )
+      return { level: l - 1, progress, progressTotal }
+    }
+  }
+  return { level: maxLevel, progress: 0, progressTotal: 0 }
+}
+const defaultRequiredStructures: readonly BuildableStructureConstant[] = [
+  STRUCTURE_SPAWN,
+  STRUCTURE_EXTENSION,
+  STRUCTURE_STORAGE,
+  STRUCTURE_TOWER,
+  STRUCTURE_POWER_SPAWN,
+  STRUCTURE_OBSERVER,
+  STRUCTURE_TERMINAL,
+  STRUCTURE_LAB,
+  STRUCTURE_NUKER,
+  STRUCTURE_FACTORY,
+]
