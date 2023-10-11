@@ -16,11 +16,17 @@ export function isValid<V>(v: V | Invalid): v is V {
  * Wrap {@link fn} with a cache indexed by {@link K}.
  * @example sort(ts, cache(t => "heavy compute..."))
  * @param fn function to cache
+ * @param getK optional function to extract {@link K} from {@link Ts}
  * @returns cached function
  */
-export function cache<K, V>(fn: (key: K) => V) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function cache<Ts extends any[], V, K = Ts[0]>(
+  fn: (...ts: Ts) => V,
+  getK: ((...ts: Ts) => K) | (Ts extends [K] ? undefined : never)
+) {
   const cache = new Map<K, V>()
-  return (key: K) => getOrSetMap(cache, key, fn)
+  const k = getK ?? ((...ts) => ts[0] as K)
+  return (...ts: Ts) => getOrSetMap(cache, k(...ts), () => fn(...ts))
 }
 
 /**

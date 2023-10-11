@@ -24,3 +24,15 @@ export function formatSI(num: number, digits = 2) {
   }
   return (num / si[i].value).toFixed(digits).replace(rx, "$1") + si[i].symbol
 }
+
+/**
+ * Generate a pseudorandom number between {@link min} min inclusive and {@link max} exclusive.
+ * @param min inclusive minimum
+ * @param max exclusive maximum
+ * @param floor round to int
+ * @returns a pseudorandom number
+ */
+export function random(min: number, max: number, floor?: boolean) {
+  const v = Math.random() * (max - min) + min
+  return floor ? Math.floor(v) : v
+}

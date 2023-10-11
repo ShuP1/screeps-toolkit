@@ -33,6 +33,18 @@ export function parseRoomName(roomName: RoomName) {
   return roomName.match(ROOM_REGEX) as [string, "W" | "E", number, "N" | "S", number]
 }
 
+/**
+ * Convert a room name into a 2d point
+ * @param roomName Valid name of a room
+ * @returns 2d coordinates (1:ROOM_SIZE scale)
+ */
+export function getRoomNameCoords(roomName: RoomName): Coordinates {
+  let [, h, x, v, y] = parseRoomName(roomName)
+  if (h == "W") x = ~x
+  if (v == "N") y = ~y
+  return { x, y }
+}
+
 /** Room type information without visibility required */
 export enum RoomSectorKind {
   /** With portals and terminal */
@@ -72,7 +84,7 @@ export const getRoomCenter = (name: RoomName) =>
 
 /**
  * Distance when moving only vertically, horizontally and diagonally.
- * Correct distance for creep movements.
+ * Correct distance for in room creep movements.
  * @param a First point
  * @param b Second point
  * @returns Chebyshev distance between those points
@@ -82,6 +94,7 @@ export function getChebyshevDist(a: Coordinates, b: Coordinates) {
 }
 /**
  * Distance when moving only vertically or horizontally.
+ * Correct distance for inter room creep movements.
  * @param a First point
  * @param b Second point
  * @returns Manhattan distance between those points
@@ -106,10 +119,16 @@ export function getEuclidDist(a: Coordinates, b: Coordinates) {
  * @returns Direction constant
  */
 export function getDirectionTo(from: Coordinates, to: Coordinates) {
-  const [dx, dy] = [from.x - to.x, from.y - to.y]
-  const arc = Math.atan2(dy, dx) * (180 / Math.PI)
-  const dir = Math.round(arc / 45 + 3)
-  return dir == 0 ? 8 : (dir as DirectionConstant)
+  const dx = to.x - from.x,
+    dy = to.y - from.y
+  const adx = Math.abs(dx),
+    ady = Math.abs(dy)
+  if (adx > ady * 2) return dx > 0 ? RIGHT : LEFT
+  if (ady > adx * 2) return dy > 0 ? BOTTOM : TOP
+  if (dx > 0 && dy > 0) return BOTTOM_RIGHT
+  if (dx > 0 && dy < 0) return TOP_RIGHT
+  if (dx < 0 && dy > 0) return BOTTOM_LEFT
+  return TOP_LEFT
 }
 
 const DIR_OFFSET: Record<DirectionConstant, Coordinates> = {

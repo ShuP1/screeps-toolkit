@@ -31,8 +31,7 @@ export const ACTION_BODYPART: Record<ActionConstant, BodyPartConstant> = {
   damage: "tough",
 }
 
-/** Map creep actions with required range */
-export const ACTION_RANGE: Record<ActionConstant, number | undefined> = {
+const ACTION_RANGE_ = {
   attack: 1,
   heal: 1,
   harvest: 1,
@@ -47,6 +46,9 @@ export const ACTION_RANGE: Record<ActionConstant, number | undefined> = {
   fatigue: undefined,
   damage: undefined,
 }
+/** Map creep actions with required range */
+export const ACTION_RANGE: typeof ACTION_RANGE_ & Record<ActionConstant, number | undefined> =
+  ACTION_RANGE_
 
 /** Power of RANGED_MASS_ATTACK, dependent on range */
 export const RANGED_MASS_ATTACK_POWER = { 1: 10, 2: 4, 3: 1 }

@@ -1,11 +1,15 @@
 /** Is game running in single room simulation */
-export const IS_SIM = !!Game.rooms["sim"]
+export const IS_SIM = !!Game.rooms.sim as boolean
 /** Is game running on the official server */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 export const IS_MMO = !!Game.shard?.name?.startsWith("shard")
 
 /** The name of the account running the code  */
-export const PLAYER_USERNAME = (Object.values(Game.spawns)[0] || Object.values(Game.creeps)[0])
-  .owner.username
+export const PLAYER_USERNAME = (
+  Object.values(Game.spawns)[0] ||
+  Object.values(Game.rooms).find((r) => r.controller?.my)?.controller ||
+  Object.values(Game.creeps)[0]
+).owner.username
 /** username for the Invader NPCs */
 export const INVADER_USERNAME = "Invader"
 /** username for Source Keeper NPCs */

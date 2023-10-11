@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 const BITS_PER_CHAR = 15 // Base32768 is a 15-bit encoding
 const BITS_PER_BYTE = 8
 

@@ -86,3 +86,14 @@ const defaultRequiredStructures: readonly BuildableStructureConstant[] = [
   STRUCTURE_NUKER,
   STRUCTURE_FACTORY,
 ]
+
+/**
+ * Compute ticks until a {@link StructureRoad} is destroyed by time decay.
+ * @param road the road to check
+ * @returns ticks until decay
+ */
+export function getRoadTicksToDestroy(road: StructureRoad) {
+  const { ticksToDecay, hits, hitsMax } = road
+  const decayCycles = Math.floor(hits / (hitsMax * (ROAD_HITS / ROAD_DECAY_AMOUNT)))
+  return decayCycles * ROAD_DECAY_TIME + ticksToDecay
+}

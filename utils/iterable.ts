@@ -122,6 +122,29 @@ export function min<T>(
 export const min_ = partial(min)
 
 /**
+ * Find the biggest value in a list of things also works with generators.
+ * @param ts list of things
+ * @param map function to convert a thing to number
+ * @param minE optional: exclusive minimum value to accept
+ * @returns the biggest value and the associated thing or undefined if none are superior to {@link minE}
+ */
+export function maxEntry<T>(
+  ts: Iterable<T>,
+  map: (t: T) => number,
+  minE: number = Number.NEGATIVE_INFINITY
+): { t: T; value: number } | undefined {
+  let res = undefined
+  for (const t of ts) {
+    const v = map(t)
+    if (v > minE) {
+      minE = v
+      res = t
+    }
+  }
+  return res ? { t: res, value: minE } : undefined
+}
+
+/**
  * Calls a defined callback function on each element of a list.
  * ```ts
  * ts.map(map)
@@ -159,9 +182,18 @@ export const forEach_ = partial1(forEach)
  * @param tts nested list of things
  * @yields each individual thing
  */
-export function* flatten<T>(...tts: Iterable<T>[]) {
-  for (const ts of tts) yield* ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function* flatten<ITs extends Iterable<any>[]>(
+  ...tts: ITs
+): Generator<UnionI<ITs>, void, undefined> {
+  for (const ts of tts) yield* ts as Iterable<UnionI<ITs>>
 }
+type UnionI<ITs> = ITs extends [Iterable<infer T>, ...infer UTs]
+  ? T | UnionI<UTs>
+  : ITs extends [Iterable<infer T>]
+  ? T
+  : never
+
 /**
  * Calls a defined callback function on each element of a list then returns individual elements also works with generators.
  * @param ts list of things

@@ -16,10 +16,11 @@ export function wrapErrorMapper(fn: () => void, minimumBucket = 100): () => void
       if (e instanceof Error) {
         if (IS_SIM) {
           consoleError(
-            "Source maps don't work in the simulator - displaying original error\n" + e.stack!
+            "Source maps don't work in the simulator - displaying original error\n" +
+              (e.stack ?? "")
           )
         } else if (Game.cpu.bucket < minimumBucket) {
-          consoleError("No enough cpu to map error\n" + e.stack!)
+          consoleError("No enough cpu to map error\n" + (e.stack ?? ""))
         } else {
           consoleError(getSourceMappedStackTrace(e))
         }
@@ -49,7 +50,7 @@ const cache: Record<string, string> = {}
  * @returns The source-mapped stack trace string
  */
 export function getSourceMappedStackTrace(error: Error | string): string {
-  const stack: string = error instanceof Error ? error.stack! : error
+  const stack: string = error instanceof Error ? error.stack ?? "" : error
   if (Object.prototype.hasOwnProperty.call(cache, stack)) {
     return cache[stack]
   }
@@ -68,7 +69,7 @@ export function getSourceMappedStackTrace(error: Error | string): string {
         line: parseInt(match[3], 10),
       })
 
-      if (pos.line != undefined) {
+      if ((pos.line as number | undefined) != undefined) {
         if (pos.name) {
           outStack += `\n    at ${pos.name} (${pos.source}:${pos.line}:${pos.column})`
         } else {

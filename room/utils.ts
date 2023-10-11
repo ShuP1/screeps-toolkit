@@ -2,18 +2,18 @@ import { RoomName } from "../position/types"
 
 /**
  * Find neighbor rooms without need for visibility.
- * @param from starting room
+ * @param origin starting room
  * @param dist optional: number of rooms from starting point
  * @param pred optional: condition for a room to be visited
- * @returns a set of neighbor room names excluding {@link from}
+ * @returns a set of neighbor room names excluding {@link origin}
  */
 export function describeAdjacentRooms(
-  from: RoomName,
+  origin: RoomName,
   dist = 1,
   pred: (r: RoomName, dist: number) => boolean = () => true
 ) {
-  const res = new Set([from])
-  let q = [from]
+  const res = new Set([origin])
+  let q = [origin]
   for (let i = 1; i <= dist; i++) {
     const nq = []
     for (const from of q) {
@@ -27,6 +27,20 @@ export function describeAdjacentRooms(
     }
     q = nq
   }
-  res.delete(from)
+  res.delete(origin)
   return res
+}
+
+/**
+ * Guess sources capacity based on room ownership.
+ * @param room a room (maybe partial)
+ * @returns a number of energy units
+ */
+export function getRoomSourcesCapacity(room: RoomOwnershipData) {
+  if (!room.controller) return SOURCE_ENERGY_KEEPER_CAPACITY
+  if (room.controller.owner || room.controller.reservation) return SOURCE_ENERGY_CAPACITY
+  return SOURCE_ENERGY_NEUTRAL_CAPACITY
+}
+interface RoomOwnershipData {
+  controller?: { owner?: object; reservation?: object }
 }
