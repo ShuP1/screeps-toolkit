@@ -1,6 +1,5 @@
-import { ROOM_MAX, ROOM_MIN } from "./constants"
 import { RoomName } from "./types"
-import { getChebyshevDist, getDirectionTo, normalizePos, parseRoomName } from "./utils"
+import { getChebyshevDist, getDirectionTo, isInRoom, normalizePos, parseRoomName } from "./utils"
 
 /** Uniform screep's world position with E0S0 as origin. */
 export class WorldPosition {
@@ -25,9 +24,9 @@ export class WorldPosition {
    * @returns this
    */
   static fromRoom(at: RoomPosition | _HasRoomPosition) {
-    const { x, y, roomName } = normalizePos(at)
-    if (x < ROOM_MIN || x > ROOM_MAX) throw new RangeError(`x value ${x} not in range`)
-    if (y < ROOM_MIN || y > ROOM_MAX) throw new RangeError(`y value ${y} not in range`)
+    const p = normalizePos(at)
+    if (!isInRoom(p)) throw new RangeError(`${p.x},${p.y} not in range`)
+    const { x, y, roomName } = p
     if (roomName == "sim") return new WorldPosition(x, y)
     let [, h, wx, v, wy] = parseRoomName(roomName as RoomName)
     if (h == "W") wx = ~wx

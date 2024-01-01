@@ -1,23 +1,14 @@
-import { ROOM_MAX, ROOM_MIN } from "../position/constants"
+import { inRoomRangeArea, inRoomRangeXY } from "../position/utils"
+import { getRoom } from "./utils"
 
 /**
  * Run {@link Room.lookAtArea} on a given range bounded to room borders
- * @param pos Center position
+ * @param center Center position
  * @param range Optional range
  * @returns List of results
  */
-export function lookInRange(pos: RoomPosition, range = 1) {
-  const { x, y, roomName } = pos
-  const room = Game.rooms[roomName] as Room | undefined
-  return (
-    room?.lookAtArea(
-      Math.max(y - range, ROOM_MIN),
-      Math.max(x - range, ROOM_MIN),
-      Math.min(y + range, ROOM_MAX),
-      Math.min(x + range, ROOM_MAX),
-      true
-    ) ?? []
-  )
+export function lookInRange(center: RoomPosition, range = 1) {
+  return getRoom(center.roomName)?.lookAtArea(...inRoomRangeArea(center, range), true) ?? []
 }
 
 /**
@@ -32,14 +23,10 @@ export function* lookForInRange<T extends keyof AllLookAtTypes>(
   type: T,
   range = 1
 ) {
-  const room = Game.rooms[center.roomName] as Room | undefined
+  const room = getRoom(center.roomName)
   if (!room) return
-  const mx = Math.min(ROOM_MAX, center.x + range)
-  const my = Math.min(ROOM_MAX, center.y + range)
-  for (let x = Math.max(ROOM_MIN, center.x - range); x <= mx; x++) {
-    for (let y = Math.max(ROOM_MIN, center.y - range); y <= my; y++) {
-      yield* room.lookForAt(type, x, y)
-    }
+  for (const { x, y } of inRoomRangeXY(center, range)) {
+    yield* room.lookForAt(type, x, y)
   }
 }
 
@@ -55,17 +42,8 @@ export function lookForMatrixInRange<T extends keyof AllLookAtTypes>(
   type: T,
   range = 1
 ) {
-  const { x, y, roomName } = center
-  const room = Game.rooms[roomName] as Room | undefined
   return (
-    room?.lookForAtArea(
-      type,
-      Math.max(y - range, ROOM_MIN),
-      Math.max(x - range, ROOM_MIN),
-      Math.min(y + range, ROOM_MAX),
-      Math.min(x + range, ROOM_MAX),
-      true
-    ) ?? []
+    getRoom(center.roomName)?.lookForAtArea(type, ...inRoomRangeArea(center, range), true) ?? []
   )
 }
 

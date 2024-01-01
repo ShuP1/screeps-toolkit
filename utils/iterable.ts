@@ -266,6 +266,31 @@ export function first<T>(ts: Iterable<T>, pred: (t: T) => boolean = exists): T |
 export const first_ = partial1(first)
 
 /**
+ * Returns if any of the thing is valid.
+ * @param ts list of things
+ * @param pred function to check if a thing is valid
+ * @returns if any is valid
+ */
+export function some<T>(ts: Iterable<T>, pred: (t: T) => boolean = exists): boolean {
+  for (const t of ts) {
+    if (pred(t)) return true
+  }
+  return false
+}
+/**
+ * Returns if all the things are valid.
+ * @param ts list of things
+ * @param pred function to check if a thing is valid
+ * @returns if all are valid
+ */
+export function every<T>(ts: Iterable<T>, pred: (t: T) => boolean = exists): boolean {
+  for (const t of ts) {
+    if (!pred(t)) return false
+  }
+  return true
+}
+
+/**
  * Returns the first thing which is valid.
  * @param ts list of things
  * @param pred function to check if a thing is valid

@@ -1,6 +1,15 @@
 import { RoomName } from "../position/types"
 
 /**
+ * Correctly typed `Game.rooms[name]`.
+ * @param name target room name
+ * @returns a room if visible
+ */
+export function getRoom(name: RoomName | string): Room | undefined {
+  return Game.rooms[name]
+}
+
+/**
  * Find neighbor rooms without need for visibility.
  * @param origin starting room
  * @param dist optional: number of rooms from starting point

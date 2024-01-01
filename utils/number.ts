@@ -36,3 +36,33 @@ export function random(min: number, max: number, floor?: boolean) {
   const v = Math.random() * (max - min) + min
   return floor ? Math.floor(v) : v
 }
+
+/**
+ * Clamp a number between {@link min} and {@link max} inclusive.
+ * @param min inclusive minimum
+ * @param val value to clamp
+ * @param max inclusive maximum
+ * @returns clamped value
+ */
+export function clamp(min: number, val: number, max: number) {
+  if (val < min) return min
+  if (val > max) return max
+  return val
+}
+
+function mix(a: number, b: number, ratio: number) {
+  return a * ratio + b * (1 - ratio)
+}
+/**
+ * Compute a moving average
+ * @param prev previous average
+ * @param life average sample count
+ * @param cur current value
+ * @returns current average
+ */
+export function movingAverage(prev: number | undefined, life: number, cur: number) {
+  if (prev == undefined) return cur
+
+  const alpha = 2 / (life + 1)
+  return mix(cur, prev, alpha)
+}

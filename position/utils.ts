@@ -1,14 +1,27 @@
-import { RoomName, Coordinates } from "./types"
+import { RoomName, Coordinates, Area } from "./types"
 import { ROOM_MIN, ROOM_MAX, ROOM_SIZE } from "./constants"
+import { clamp } from "../utils/number"
 
 /**
  * Whether or not this position is an exit. Ignoring terrain.
  * @param at A room position
+ * @param range Optional distance to exits
  * @returns Is this position at the edge of the room
  */
-export function isExit(at: Coordinates) {
+export function isExit(at: Coordinates, range = 0) {
   const { x, y } = at
-  return x <= ROOM_MIN || x >= ROOM_MAX || y <= ROOM_MIN || y >= ROOM_MAX
+  return (
+    x <= ROOM_MIN + range || x >= ROOM_MAX - range || y <= ROOM_MIN + range || y >= ROOM_MAX - range
+  )
+}
+/**
+ * Whether or not this position is inside of a room.
+ * @param at A room position
+ * @returns Is this position valid room coordinates
+ */
+export function isInRoom(at: Coordinates) {
+  const { x, y } = at
+  return x >= ROOM_MIN && y >= ROOM_MIN && x < ROOM_MAX && y < ROOM_MAX
 }
 
 /**
@@ -150,23 +163,82 @@ const DIR_OFFSET: Record<DirectionConstant, Coordinates> = {
 export function getToDirection(pos: RoomPosition, d: DirectionConstant) {
   const x = pos.x + DIR_OFFSET[d].x
   const y = pos.y + DIR_OFFSET[d].y
-  if (x < ROOM_MIN || y < ROOM_MIN || x > ROOM_MAX || y > ROOM_MAX) return undefined
-  return new RoomPosition(x, y, pos.roomName)
+  return isInRoom({ x, y }) ? new RoomPosition(x, y, pos.roomName) : undefined
 }
 
 /**
- * List all {@link RoomPosition} in a given square
+ * Clamp coordinates in room range.
+ * @param at point to clamp
+ * @returns clamped coordinates
+ */
+export function clampInRoom(at: Coordinates): Coordinates {
+  const { x, y } = at
+  return { x: clamp(ROOM_MIN, x, ROOM_MAX), y: clamp(ROOM_MIN, y, ROOM_MAX) }
+}
+
+/**
+ * List all {@link RoomPosition} in a given square clamped to room borders
  * @param center middle point
  * @param range positive integer
  * @yields a valid position
  */
 export function* inRoomRange(center: RoomPosition, range = 1) {
+  for (const { x, y } of inRoomRangeXY(center, range)) {
+    yield new RoomPosition(x, y, center.roomName)
+  }
+}
+/**
+ * List all {@link Coordinates} in a given square clamped to room borders
+ * @param center middle point
+ * @param range positive integer
+ * @yields a coordinate in room
+ */
+export function* inRoomRangeXY(center: Coordinates, range = 1) {
   const mx = Math.min(ROOM_MAX, center.x + range)
   const my = Math.min(ROOM_MAX, center.y + range)
   for (let x = Math.max(ROOM_MIN, center.x - range); x <= mx; x++) {
     for (let y = Math.max(ROOM_MIN, center.y - range); y <= my; y++) {
-      yield new RoomPosition(x, y, center.roomName)
+      yield { x, y } as Coordinates
     }
+  }
+}
+
+/**
+ * Get an area in a given square clamped to room borders.
+ * @param center middle point
+ * @param range positive integer
+ * @returns area in room
+ */
+export function inRoomRangeArea(center: Coordinates, range = 1): Area {
+  const { x, y } = center
+  return [
+    Math.max(y - range, ROOM_MIN),
+    Math.max(x - range, ROOM_MIN),
+    Math.min(y + range, ROOM_MAX),
+    Math.min(x + range, ROOM_MAX),
+  ]
+}
+
+/**
+ * List all {@link RoomPosition} at a given square border excluding out of room
+ * @param center middle point
+ * @param range positive integer
+ * @yields a valid position
+ */
+export function* atRoomRange(center: RoomPosition, range = 1) {
+  if (!range) {
+    yield center
+    return
+  }
+  const { x: cx, y: cy, roomName } = center
+  function* send(x: number, y: number) {
+    if (isInRoom({ x, y })) yield new RoomPosition(x, y, roomName)
+  }
+  for (let d = -range; d < range; d++) {
+    yield* send(cx + d, cy + range)
+    yield* send(cx + range, cy - d)
+    yield* send(cx - d, cy - range)
+    yield* send(cx - range, cy + d)
   }
 }
 

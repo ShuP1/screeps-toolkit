@@ -1,3 +1,4 @@
+import { clamp } from "../utils/number"
 import { CPU_BUCKET_MAX } from "./constants"
 
 /**
@@ -41,10 +42,4 @@ export function adjustedCPULimit(
   }
 
   return clamp(Math.round(limit * 0.2), Math.round(limit * multiplier), maxCpuPerTick)
-}
-
-function clamp(min: number, val: number, max: number) {
-  if (val < min) return min
-  if (val > max) return max
-  return val
 }
