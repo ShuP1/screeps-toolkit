@@ -29,12 +29,10 @@ export function getSpeedrunVisualDrawer(startTime = Game.time, avgDuration = 100
       data.ept = 0
       data.cumulatedProgress = nextProgress
     }
-    if (data.rcl.length <= ctrl.level) {
-      for (let l = ctrl.level; l >= 0; l--) {
-        data.rcl[l] = Game.time
-      }
+    for (let l = data.rcl.length; l <= ctrl.level; l++) {
+      data.rcl[l] = Game.time
     }
-    data.ept = movingAverage(data.ept, avgDuration, data.cumulatedProgress - nextProgress)
+    data.ept = movingAverage(data.ept, avgDuration, nextProgress - data.cumulatedProgress)
     data.cumulatedProgress = nextProgress
 
     const visual = ctrl.room.visual
@@ -57,7 +55,7 @@ export function getSpeedrunVisualDrawer(startTime = Game.time, avgDuration = 100
     visual.text(
       `Progress: ${delimit(ctrl.progress)} / ${delimit(ctrl.progressTotal)} (${
         Math.floor((ctrl.progress / ctrl.progressTotal) * 1000) / 10
-      }%`,
+      }%)`,
       x,
       y++,
       { align: "left" }

@@ -24,12 +24,14 @@ export function isInRoom(at: Coordinates) {
   return x >= ROOM_MIN && y >= ROOM_MIN && x < ROOM_MAX && y < ROOM_MAX
 }
 
+/** Object with a {@link RoomPosition} to {@link normalizePos} */
+export type SomeRoomPosition = RoomPosition | _HasRoomPosition
 /**
  * Extract position from an object with a position
  * @param it Object with a position
  * @returns The RoomPosition
  */
-export function normalizePos(it: RoomPosition | _HasRoomPosition): RoomPosition {
+export function normalizePos(it: SomeRoomPosition): RoomPosition {
   if (!(it instanceof RoomPosition)) {
     return it.pos
   }
