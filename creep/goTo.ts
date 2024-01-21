@@ -189,7 +189,7 @@ export function goTo(
     }
 
     const blocker = dest.lookFor(LOOK_CREEPS)[0] as Creep | undefined
-    if (blocker) {
+    if (blocker && (blocker.my || !c.room.controller?.my || !c.room.controller.safeMode)) {
       if (!blocker.my) return false
       const bMem = getMemory(blocker)
       if (

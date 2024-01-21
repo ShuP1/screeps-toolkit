@@ -1,4 +1,4 @@
-import { ACTION_BODYPART, ActionConstant, MOVE_FATIGUE_POWER } from "../constants"
+import { ACTION_BODYPART, ACTION_POWER, ActionConstant, MOVE_FATIGUE_POWER } from "./constants"
 
 /**
  * Compute the energy cost of a creep body
@@ -111,4 +111,17 @@ export function getMoveEfficiency(creep: AnyCreep, usedCapacity = creep.store.ge
     }
   }
   return nonMoveParts > 0 ? (activeMoveParts * MOVE_FATIGUE_POWER) / nonMoveParts : Infinity
+}
+
+/**
+ * Compute the power of active bodyparts for a given action
+ * @param body Array of bodyparts {@link Creep.body}
+ * @param action expected action
+ * @returns power for the given action
+ */
+export function getBodypartsPower(
+  body: readonly BodyPartDefinition[],
+  action: keyof typeof ACTION_POWER
+) {
+  return getActiveBodypartsBoostEquivalent(body, action) * ACTION_POWER[action]
 }

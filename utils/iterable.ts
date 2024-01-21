@@ -454,3 +454,18 @@ export function partial<T, Ps extends any[], U>(fn: (t: T, ...ps: Ps) => U) {
 function partial1<T, P, U>(fn: (t: T, p: P) => U) {
   return (p: P) => (t: T) => fn(t, p)
 }
+
+/**
+ * Reorder an array in place. Uses the Fisher-Yates shuffle algorithm.
+ * @param ts an array of things
+ * @returns the shuffled array
+ */
+export function shuffle<T>(ts: T[]): T[] {
+  for (let m = ts.length - 1; m; m--) {
+    const i = Math.floor(Math.random() * m)
+    const t = ts[m]
+    ts[m] = ts[i]
+    ts[i] = t
+  }
+  return ts
+}

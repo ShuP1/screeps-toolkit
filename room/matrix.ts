@@ -1,4 +1,5 @@
 import { RoomName } from "../position/types"
+import { inRoomRangeXY } from "../position/utils"
 import { Dict } from "../utils/map"
 import { OBSTACLE_TYPES, OBSTACLE_TYPES_NO_DESTRUCTIBLE } from "./object"
 import { getRoom } from "./utils"
@@ -10,6 +11,8 @@ export interface RoomMatrixOpts {
   ignoreStructures?: boolean
   ignoreDestructibleStructures?: boolean
   avoidRoads?: boolean
+  avoidMyConstructionSites?: boolean
+  avoidMySpawns?: boolean
 }
 
 /**
@@ -26,58 +29,54 @@ export function getRoomMatrix(name: RoomName, opts: RoomMatrixOpts, cache = {}) 
   if (opts.avoidRoads) key += "r"
   else if (!opts.ignoreRoads) key += "R"
   if (!opts.ignoreCreeps) key += "c"
+  if (opts.avoidMyConstructionSites) key += "x"
+  if (opts.avoidMySpawns) key += "q"
   const cached = cache_[key]
   if (cached && cached[0] == Game.time) return cached[1]
 
   let matrix: CostMatrix | undefined = undefined
+  const block = (ps: _HasRoomPosition[], v = 0xff) => {
+    if (!ps.length) return
+    matrix ??= new PathFinder.CostMatrix()
+    for (const {
+      pos: { x, y },
+    } of ps)
+      matrix.set(x, y, v)
+  }
   const room = getRoom(name)
   if (room) {
     if (!opts.ignoreRoads || opts.avoidRoads) {
-      const roads = room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } })
-      if (roads.length) {
-        const roadCost = opts.avoidRoads ? 10 : 1
-        matrix ??= new PathFinder.CostMatrix()
-        for (const {
-          pos: { x, y },
-        } of roads) {
-          matrix.set(x, y, roadCost)
-        }
-      }
+      block(
+        room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } }),
+        opts.avoidRoads ? 10 : 1
+      )
     }
     if (!opts.ignoreStructures) {
       const types = opts.ignoreDestructibleStructures
         ? OBSTACLE_TYPES_NO_DESTRUCTIBLE
         : OBSTACLE_TYPES
-      matrix ??= new PathFinder.CostMatrix()
-      const structures: (AnyStructure & Partial<OwnedStructure>)[] = room.find(FIND_STRUCTURES)
-      for (const {
-        structureType,
-        pos: { x, y },
-        my,
-      } of structures) {
-        if (
-          types.has(structureType) ||
-          (!opts.ignoreDestructibleStructures && !my && structureType == STRUCTURE_RAMPART)
-        )
-          matrix.set(x, y, 0xff)
-      }
+      block(
+        room.find(FIND_STRUCTURES, {
+          filter: (s) =>
+            types.has(s.structureType) ||
+            (!opts.ignoreDestructibleStructures &&
+              !(s as Partial<OwnedStructure>).my &&
+              s.structureType == STRUCTURE_RAMPART),
+        })
+      )
     }
     if (!opts.ignoreCreeps) {
-      const creeps = room.find(FIND_CREEPS)
-      if (creeps.length) {
+      block(room.find(FIND_CREEPS))
+      block(room.find(FIND_POWER_CREEPS))
+    }
+    if (opts.avoidMyConstructionSites) {
+      block(room.find(FIND_MY_CONSTRUCTION_SITES), 50)
+    }
+    if (opts.avoidMySpawns) {
+      const sps = room.find(FIND_MY_SPAWNS)
+      if (sps.length) {
         matrix ??= new PathFinder.CostMatrix()
-        for (const {
-          pos: { x, y },
-        } of creeps)
-          matrix.set(x, y, 0xff)
-      }
-      const pCreeps = room.find(FIND_POWER_CREEPS)
-      if (pCreeps.length) {
-        matrix ??= new PathFinder.CostMatrix()
-        for (const {
-          pos: { x, y },
-        } of pCreeps)
-          matrix.set(x, y, 0xff)
+        for (const s of sps) for (const p of inRoomRangeXY(s.pos)) matrix.set(p.x, p.y, 50)
       }
     }
   } else {

@@ -64,18 +64,41 @@ export function applyDistanceTransform(cm: CostMatrix, oob = 255): CostMatrix {
   return cm
 }
 
-// Compute a cost matrix for walkable pixels in a room
-function getRoomWalkableMatrix(roomName: string, exclude?: CostMatrix): CostMatrix {
-  const costMatrix = new PathFinder.CostMatrix()
+/** Maximum value of {@link CostMatrix} */
+export const MATRIX_MAX = 0xff
+
+declare global {
+  interface CostMatrix {
+    _bits: number[]
+  }
+}
+
+/**
+ * Convert {@link RoomTerrain} to {@link CostMatrix}
+ * @param roomName target room name
+ * @param plain value for {@link TERRAIN_MASK_PLAIN}
+ * @param swamp value for {@link TERRAIN_MASK_SWAMP}
+ * @param wall value for {@link TERRAIN_MASK_WALL}
+ * @param exclude optional matrix with non-zero values considered as wall
+ * @returns a matrix of the terrain for the given room
+ */
+export function getRoomTerrainMatrix(
+  roomName: RoomName,
+  plain = 1,
+  swamp = 5,
+  wall = MATRIX_MAX,
+  exclude?: CostMatrix
+): CostMatrix {
+  const cm = new PathFinder.CostMatrix()
   const terrain = Game.map.getRoomTerrain(roomName)
-  for (let y = 0; y < 50; ++y) {
-    for (let x = 0; x < 50; ++x) {
-      if (terrain.get(x, y) != TERRAIN_MASK_WALL && !exclude?.get(x, y)) {
-        costMatrix.set(x, y, 1)
-      }
+  for (let y = 0; y < ROOM_SIZE; ++y) {
+    for (let x = 0; x < ROOM_SIZE; ++x) {
+      const t = terrain.get(x, y)
+      cm._bits[x * ROOM_SIZE + y] =
+        t & TERRAIN_MASK_WALL || exclude?.get(x, y) ? wall : t & TERRAIN_MASK_SWAMP ? swamp : plain
     }
   }
-  return costMatrix
+  return cm
 }
 
 /**
@@ -85,5 +108,5 @@ function getRoomWalkableMatrix(roomName: string, exclude?: CostMatrix): CostMatr
  * @returns A matrix where values are distance to the nearest wall
  */
 export function getRoomDistanceTransform(roomName: RoomName, exclude?: CostMatrix): CostMatrix {
-  return applyDistanceTransform(getRoomWalkableMatrix(roomName, exclude))
+  return applyDistanceTransform(getRoomTerrainMatrix(roomName, 1, 1, 0, exclude))
 }

@@ -160,11 +160,12 @@ const DIR_OFFSET: Record<DirectionConstant, Coordinates> = {
  * Compute position in a given direction
  * @param pos start position
  * @param d direction constant
+ * @param n number of steps
  * @returns destination position
  */
-export function getToDirection(pos: RoomPosition, d: DirectionConstant) {
-  const x = pos.x + DIR_OFFSET[d].x
-  const y = pos.y + DIR_OFFSET[d].y
+export function getToDirection(pos: RoomPosition, d: DirectionConstant, n = 1) {
+  const x = pos.x + DIR_OFFSET[d].x * n
+  const y = pos.y + DIR_OFFSET[d].y * n
   return isInRoom({ x, y }) ? new RoomPosition(x, y, pos.roomName) : undefined
 }
 

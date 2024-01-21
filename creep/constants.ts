@@ -1,3 +1,5 @@
+import { Dict } from "../utils"
+
 /** Third level keys of {@link BOOSTS} constant */
 export type ActionConstant =
   | "harvest"
@@ -31,7 +33,8 @@ export const ACTION_BODYPART: Record<ActionConstant, BodyPartConstant> = {
   damage: "tough",
 }
 
-const ACTION_RANGE_ = {
+/** Map creep actions with power multiplier */
+export const ACTION_RANGE = {
   attack: 1,
   heal: 1,
   harvest: 1,
@@ -42,13 +45,24 @@ const ACTION_RANGE_ = {
   rangedAttack: 3,
   rangedMassAttack: 3,
   rangedHeal: 3,
-  capacity: undefined,
-  fatigue: undefined,
-  damage: undefined,
 }
 /** Map creep actions with required range */
-export const ACTION_RANGE: typeof ACTION_RANGE_ & Record<ActionConstant, number | undefined> =
-  ACTION_RANGE_
+export const ACTION_RANGE_DICT: typeof ACTION_RANGE & Dict<ActionConstant, number> = ACTION_RANGE
+
+/** Map creep actions with power multiplier */
+export const ACTION_POWER = {
+  attack: ATTACK_POWER,
+  heal: HEAL_POWER,
+  harvest: HARVEST_POWER,
+  dismantle: DISMANTLE_POWER,
+  build: BUILD_POWER,
+  repair: REPAIR_POWER,
+  upgradeController: UPGRADE_CONTROLLER_POWER,
+  rangedAttack: RANGED_ATTACK_POWER,
+  rangedHeal: RANGED_HEAL_POWER,
+}
+/** Map creep actions with power multiplier */
+export const ACTION_POWER_DICT: typeof ACTION_POWER & Dict<ActionConstant, number> = ACTION_POWER
 
 /** Power of RANGED_MASS_ATTACK, dependent on range */
 export const RANGED_MASS_ATTACK_POWER = { 1: 10, 2: 4, 3: 1 }
