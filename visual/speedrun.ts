@@ -3,12 +3,12 @@ import { movingAverage } from "../utils/number"
 
 /**
  * Standard speedrun timer visual
+ * @param state metrics data
  * @param startTime speedrun start {@link Game.time}
  * @param avgDuration upgrade speed average duration
- * @param state metrics data
  * @returns a function to display speedrun visuals
  */
-export function getSpeedrunVisualDrawer(startTime = Game.time, avgDuration = 100, state = {}) {
+export function getSpeedrunVisualDrawer(state = {}, startTime = Game.time, avgDuration = 100) {
   const data = state as {
     rcl?: number[]
     roomName: string

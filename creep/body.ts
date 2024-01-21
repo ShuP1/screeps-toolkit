@@ -78,7 +78,7 @@ export function getBodypartsBoostEquivalent(
 export const getActiveBodypartsBoostEquivalent = (
   body: readonly BodyPartDefinition[],
   action: ActionConstant
-) => getBodypartsBoostEquivalent(body, action)
+) => getBodypartsBoostEquivalent(body, action, true)
 
 type BoostsBodypartType = Record<string, Record<ActionConstant, number>>
 
@@ -110,7 +110,9 @@ export function getMoveEfficiency(creep: AnyCreep, usedCapacity = creep.store.ge
         break
     }
   }
-  return nonMoveParts > 0 ? (activeMoveParts * MOVE_FATIGUE_POWER) / nonMoveParts : Infinity
+  if (nonMoveParts) return (activeMoveParts * MOVE_FATIGUE_POWER) / nonMoveParts
+  if (activeMoveParts) return Infinity
+  return 0
 }
 
 /**

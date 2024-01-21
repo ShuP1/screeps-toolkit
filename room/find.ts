@@ -76,24 +76,4 @@ export function* lookForStructureAt<T extends keyof ConcreteStructureMap>(
   for (const s of pos.lookFor(LOOK_STRUCTURES)) {
     if (s.structureType == type) yield s as ConcreteStructureMap[T]
   }
-  pos.lookFor(LOOK_TERRAIN)
-}
-
-/**
- * Check if the terrain is swampy.
- * @param pos Target position
- * @returns Whether or not this position is swampy
- */
-export function isSwampAt(pos: RoomPosition) {
-  const { roomName, x, y } = pos
-  return !!(new Room.Terrain(roomName).get(x, y) & TERRAIN_MASK_SWAMP)
-}
-/**
- * Check if the terrain is not a wall. Does not check for {@link StructureWall}.
- * @param pos Target position
- * @returns Whether or not this position is not {@link TERRAIN_MASK_WALL}
- */
-export function isTerrainWalkableAt(pos: RoomPosition) {
-  const { roomName, x, y } = pos
-  return !(new Room.Terrain(roomName).get(x, y) & TERRAIN_MASK_WALL)
 }

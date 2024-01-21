@@ -1,7 +1,7 @@
 import { RoomName } from "../position/types"
 import { inRoomRangeXY } from "../position/utils"
 import { Dict } from "../utils/map"
-import { OBSTACLE_TYPES, OBSTACLE_TYPES_NO_DESTRUCTIBLE } from "./object"
+import { isObjectObstacle } from "./object"
 import { getRoom } from "./utils"
 
 /** Options for {@link getRoomMatrix} */
@@ -47,21 +47,16 @@ export function getRoomMatrix(name: RoomName, opts: RoomMatrixOpts, cache = {}) 
   if (room) {
     if (!opts.ignoreRoads || opts.avoidRoads) {
       block(
-        room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } }),
+        room.find(FIND_STRUCTURES, {
+          filter: { structureType: STRUCTURE_ROAD },
+        }),
         opts.avoidRoads ? 10 : 1
       )
     }
     if (!opts.ignoreStructures) {
-      const types = opts.ignoreDestructibleStructures
-        ? OBSTACLE_TYPES_NO_DESTRUCTIBLE
-        : OBSTACLE_TYPES
       block(
         room.find(FIND_STRUCTURES, {
-          filter: (s) =>
-            types.has(s.structureType) ||
-            (!opts.ignoreDestructibleStructures &&
-              !(s as Partial<OwnedStructure>).my &&
-              s.structureType == STRUCTURE_RAMPART),
+          filter: (s) => isObjectObstacle(s, false, opts.ignoreDestructibleStructures),
         })
       )
     }

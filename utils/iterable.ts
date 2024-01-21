@@ -145,6 +145,23 @@ export function maxEntry<T>(
 }
 
 /**
+ * Find the lowest value in a list of things also works with generators.
+ * @param ts list of things
+ * @param map function to convert a thing to number
+ * @param maxE optional: exclusive maximum value to accept
+ * @returns the lowest value and the associated thing or undefined if none are superior to {@link minE}
+ */
+export function minEntry<T>(
+  ts: Iterable<T>,
+  map: (t: T) => number,
+  maxE: number = Number.POSITIVE_INFINITY
+): { t: T; value: number } | undefined {
+  const e = maxEntry(ts, (t) => -map(t), -maxE)
+  if (e) e.value *= -1
+  return e
+}
+
+/**
  * Calls a defined callback function on each element of a list.
  * ```ts
  * ts.map(map)

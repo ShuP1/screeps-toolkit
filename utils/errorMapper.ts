@@ -61,33 +61,26 @@ export function getSourceMappedStackTrace(error: Error | string): string {
   let outStack = error.toString()
 
   while ((match = re.exec(stack))) {
-    if (match[2] === "main") {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      consumer ??= new SourceMapConsumer(require("main.js.map") as RawSourceMap)
-      const pos = consumer.originalPositionFor({
-        column: parseInt(match[4], 10),
-        line: parseInt(match[3], 10),
-      })
+    if (match[2] !== "main" && match[2] !== "main.js") break // no more parseable lines
 
-      if ((pos.line as number | undefined) != undefined) {
-        if (pos.name) {
-          outStack += `\n    at ${pos.name} (${pos.source}:${pos.line}:${pos.column})`
-        } else {
-          if (match[1]) {
-            // no original source file name known - use file name from given trace
-            outStack += `\n    at ${match[1]} (${pos.source}:${pos.line}:${pos.column})`
-          } else {
-            // no original source file name known or in given trace - omit name
-            outStack += `\n    at ${pos.source}:${pos.line}:${pos.column}`
-          }
-        }
-      } else {
-        // no known position
-        break
-      }
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    consumer ??= new SourceMapConsumer(require("main.js.map") as RawSourceMap)
+    const pos = consumer.originalPositionFor({
+      column: parseInt(match[4], 10),
+      line: parseInt(match[3], 10),
+    })
+    if ((pos.line as number | undefined) == undefined) break // no known position
+
+    if (pos.name) {
+      outStack += `\n    at ${pos.name} (${pos.source}:${pos.line}:${pos.column})`
     } else {
-      // no more parseable lines
-      break
+      if (match[1]) {
+        // no original source file name known - use file name from given trace
+        outStack += `\n    at ${match[1]} (${pos.source}:${pos.line}:${pos.column})`
+      } else {
+        // no original source file name known or in given trace - omit name
+        outStack += `\n    at ${pos.source}:${pos.line}:${pos.column}`
+      }
     }
   }
 
