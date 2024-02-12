@@ -12,3 +12,21 @@ export function drawRoomPathVisual(path: RoomPosition[], style?: PolyStyle) {
     i = end
   }
 }
+
+/**
+ * Return a function caching {@link Game.map.visual} for a given interval
+ * @param draw a function to draw the visuals
+ * @param interval optional: interval to cache the visuals
+ * @returns a cached function to draw the visuals
+ */
+export function cacheMapVisual(draw: () => void, interval = 10) {
+  let exported: string | undefined
+  return () => {
+    if (!exported || Game.time % interval === 0) {
+      draw()
+      exported = Game.map.visual.export()
+    } else {
+      Game.map.visual.import(exported)
+    }
+  }
+}

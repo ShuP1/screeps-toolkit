@@ -10,6 +10,7 @@ import { movingAverage } from "../utils/number"
  */
 export function getSpeedrunVisualDrawer(state = {}, startTime = Game.time, avgDuration = 100) {
   const data = state as {
+    start?: number
     rcl?: number[]
     roomName: string
     cumulatedProgress: number
@@ -22,6 +23,7 @@ export function getSpeedrunVisualDrawer(state = {}, startTime = Game.time, avgDu
     const ctrl = rooms[0]
     if (!ctrl || rooms.length > 1) return
 
+    data.start ??= startTime
     const nextProgress = getControllerCumulatedProgress(ctrl)
     if (data.rcl === undefined || data.roomName != ctrl.room.name) {
       data.rcl = []
@@ -42,7 +44,7 @@ export function getSpeedrunVisualDrawer(state = {}, startTime = Game.time, avgDu
     for (let c = 2; c <= ctrl.level; c++) {
       const delay = data.rcl[c] - data.rcl[c - 1]
       visual.text(
-        `RCL ${c}: ${delimit(delay)} (${delimit(data.rcl[c] - startTime)}) - Avg. CP: ${
+        `RCL ${c}: ${delimit(delay)} (${delimit(data.rcl[c] - data.start)}) - Avg. CP: ${
           Math.floor((CONTROLLER_LEVELS[c - 1] / delay) * 10) / 10
         }e/t`,
         x,
@@ -61,7 +63,7 @@ export function getSpeedrunVisualDrawer(state = {}, startTime = Game.time, avgDu
       { align: "left" }
     )
     visual.text(
-      `Elapsed: ${delimit(Game.time - data.rcl[ctrl.level])} (${delimit(Game.time - startTime)})`,
+      `Elapsed: ${delimit(Game.time - data.rcl[ctrl.level])} (${delimit(Game.time - data.start)})`,
       x,
       y++,
       { align: "left" }
@@ -72,7 +74,7 @@ export function getSpeedrunVisualDrawer(state = {}, startTime = Game.time, avgDu
       const tickEstimate = Game.time + Math.floor((ctrl.progressTotal - ctrl.progress) / data.ept)
       visual.text(
         `Estimated RCL: T+${delimit(tickEstimate - Game.time)} (${delimit(
-          tickEstimate - startTime
+          tickEstimate - data.start
         )})`,
         x,
         y++,

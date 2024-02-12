@@ -25,15 +25,17 @@ export function isCachedObject<T extends CacheableObject>(
  */
 export function restoreCachedObject<T extends CacheableObject>(
   o: (CachedObject<T> & { id: Id<T> }) | T
-): T | null {
-  return Game.getObjectById(o.id)
+) {
+  return Game.getObjectById(o.id) as T | null
 }
 
-interface CacheOpts {
+interface CacheOpts<C> {
   /** Try to update the data if age is greater than this */
   refresh?: number
   /** Data is invalid if age is greater than this */
   ttl?: number
+  /** Fallback function when room not found */
+  fallback?: (name: RoomName) => C[]
 }
 type FindCacheableConstant =
   | FIND_HOSTILE_CREEPS
@@ -63,10 +65,10 @@ export function findCached<
   V extends FindTypes[K] = FindTypes[K]
 >(
   type: K,
-  defaultOpts: CacheOpts &
+  defaultOpts: CacheOpts<C> &
     Partial<FilterOptions<K, V>> &
     PartialIfExtends<{ map: (v: V) => Untag<C> }, CachedObject<V>, C>
-): (name: RoomName, opts?: CacheOpts) => readonly C[] {
+): (name: RoomName, opts?: CacheOpts<C>) => readonly C[] {
   const cache = new Map<RoomName, [at: number, value: readonly C[]]>()
   const map = (defaultOpts.map ?? (({ id, pos }) => ({ id, pos }))) as (v: V) => C
   return (name, opts) => {
@@ -84,7 +86,13 @@ export function findCached<
     }
     // Return cached if still valid
     const ttl = opts?.ttl ?? defaultOpts.ttl
-    return cached && (ttl == undefined || Game.time <= cached[0] + ttl) ? cached[1] : []
+    if (cached && (ttl == undefined || Game.time <= cached[0] + ttl)) return cached[1]
+    // Return fallback empty array
+    const fallback = opts?.fallback ?? defaultOpts.fallback
+    if (!fallback) return []
+    const fallbackValue = fallback(name)
+    cache.set(name, [Number.NEGATIVE_INFINITY, fallbackValue])
+    return fallbackValue
   }
 }
 

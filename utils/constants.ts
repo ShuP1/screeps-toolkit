@@ -21,3 +21,22 @@ export const CARAVAN_USERNAME = "Screeps"
 export const MINERALS_ALL = Object.keys(MINERAL_MIN_AMOUNT) as MineralConstant[]
 /** An array of all lab's mineral compounds */
 export const COMPOUNDS_ALL = Object.keys(REACTION_TIME) as MineralCompoundConstant[]
+
+/** A map of {@link ScreepsReturnCode} to their string names */
+export const RETURN_CODES: Record<ScreepsReturnCode, string> = {
+  [OK]: "Ok",
+  [ERR_NOT_OWNER]: "Error: Not owner",
+  [ERR_NO_PATH]: "Error: No path",
+  [ERR_BUSY]: "Error: Busy",
+  [ERR_NAME_EXISTS]: "Error: Name exists",
+  [ERR_NOT_FOUND]: "Error: Not found",
+  [ERR_NOT_ENOUGH_RESOURCES]: "Error: Not enough resources",
+  [ERR_INVALID_TARGET]: "Error: Invalid target",
+  [ERR_FULL]: "Error: Full",
+  [ERR_NOT_IN_RANGE]: "Error: Not in range",
+  [ERR_INVALID_ARGS]: "Error: Invalid args",
+  [ERR_TIRED]: "Error: Tired",
+  [ERR_NO_BODYPART]: "Error: No bodypart",
+  [ERR_RCL_NOT_ENOUGH]: "Error: Not enough RCL",
+  [ERR_GCL_NOT_ENOUGH]: "Error: Not enough GCL",
+}

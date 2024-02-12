@@ -124,13 +124,43 @@ function go(
           (!move(blocker, bTo) && // closer
             !some(getDirectionsSorted(dir), (bDir) => {
               const bToOther = getToDirection(blocker.pos, bDir)
-              return !!bToOther && bTo.inRangeTo(bToOther, bRange) && move(blocker, bToOther)
+              return (
+                !!bToOther &&
+                !isExit(bToOther) &&
+                bTo.inRangeTo(bToOther, bRange) &&
+                move(blocker, bToOther)
+              )
             }))) // still in range
       )
         return ERR_FULL
     }
   }
   return c.move(dir)
+}
+function goAround(
+  c: Creep,
+  dir: DirectionConstant,
+  nextDir: DirectionConstant | undefined,
+  getMemory: (o: Creep) => GoToMemory | [],
+  move: (o: Creep, to: RoomPosition, noPush?: boolean) => boolean,
+  noPush?: boolean
+): [now: DirectionConstant, next: DirectionConstant] | ScreepsReturnCode {
+  const code = go(c, dir, getMemory, move, noPush)
+  if (code == OK) return OK
+
+  if (!nextDir) return code
+  const next = getToDirection(c.pos, dir)
+  if (!next) return code
+  const nextNext = getToDirection(next, nextDir)
+  if (!nextNext) return code
+
+  for (const dirBis of getDirectionsSorted(dir)) {
+    if (dirBis == nextDir) continue
+    const bis = getToDirection(c.pos, dirBis)
+    if (!bis?.isNearTo(nextNext)) continue
+    if (go(c, dirBis, getMemory, move, noPush) == OK) return [dirBis, getDirectionTo(bis, nextNext)]
+  }
+  return code
 }
 
 /**
@@ -219,7 +249,10 @@ export function getGoToPath(
   if (to.x != mToX || to.y != mToY || to.roomName != mToRoom) return []
 
   const cut = Game.time == mTime
-  return deserializePath(c.pos, mPath.slice(limit ? mPath.length - Number(cut) - limit : 0, cut ? -1 : undefined))
+  return deserializePath(
+    c.pos,
+    mPath.slice(limit ? mPath.length - Number(cut) - limit : 0, cut ? -1 : undefined)
+  )
 }
 
 /**
@@ -338,15 +371,21 @@ export function goTo(
   mem[7] = Game.time //NOTE: assume will move to allow swap
 
   const dir = Number(path[path.length - 1]) as DirectionConstant
-  const code = go(c, dir, getMemory, doPush, opts.noPush)
+  const nextDir = path.length > 1 ? (Number(path[path.length - 2]) as DirectionConstant) : undefined
+  const code = goAround(c, dir, nextDir, getMemory, doPush, opts.noPush)
 
   if (opts.ret) opts.ret.path = retPath
-  if (code == OK) return OK
+  if (code === OK) return OK
+  if (Array.isArray(code)) {
+    if (path === mem[8]) {
+      const [cur, next] = code
+      mem[8] = mem[8].slice(0, -2) + next.toString() + cur.toString()
+    }
+    return OK
+  }
 
-  // Try to path around
   mem[7] = 0
   if (opts.ignoreCreeps === undefined) {
-    //TODO: fix path around
     opts.ignoreCreeps = false
     delete opts.path
     getMemory(c).length = 0

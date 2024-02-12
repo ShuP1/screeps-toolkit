@@ -66,3 +66,13 @@ export function movingAverage(prev: number | undefined, life: number, cur: numbe
   const alpha = 2 / (life + 1)
   return mix(cur, prev, alpha)
 }
+
+/**
+ * Round a number to the nearest multiple
+ * @param value value to round
+ * @param multiple multiple to round to
+ * @returns rounded value
+ */
+export function round(value: number, multiple: number) {
+  return Math.round(value / multiple) * multiple
+}

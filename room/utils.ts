@@ -19,7 +19,7 @@ export function getRoom(name: RoomName | string): Room | undefined {
 export function describeAdjacentRooms(
   origin: RoomName,
   dist = 1,
-  pred: (r: RoomName, dist: number) => boolean = () => true
+  pred: (r: RoomName, dist: number, from: RoomName) => boolean = () => true
 ) {
   const res = new Set([origin])
   let q = [origin]
@@ -29,7 +29,7 @@ export function describeAdjacentRooms(
       const exits = Game.map.describeExits(from)
       for (const exit in exits) {
         const to = exits[exit as ExitKey] as RoomName | undefined
-        if (!to || res.has(to) || !pred(to, i)) continue
+        if (!to || res.has(to) || !pred(to, i, from)) continue
         res.add(to)
         nq.push(to)
       }
