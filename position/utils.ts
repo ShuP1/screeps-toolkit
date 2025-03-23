@@ -1,6 +1,8 @@
-import { RoomName, Coordinates, Area } from "./types"
-import { ROOM_MIN, ROOM_MAX, ROOM_SIZE } from "./constants"
+import { RoomName, Coordinates, Area, MatrixIndex } from "./types"
+import { ROOM_MIN, ROOM_MAX, ROOM_SIZE, DIRECTION_OFFSETS } from "./constants"
 import { clamp } from "../utils/number"
+
+const { min, max, abs } = Math
 
 /**
  * Whether or not this position is an exit. Ignoring terrain.
@@ -19,9 +21,19 @@ export function isExit(at: Coordinates, range = 0) {
  * @param at A room position
  * @returns Is this position valid room coordinates
  */
-export function isInRoom(at: Coordinates) {
-  const { x, y } = at
-  return x >= ROOM_MIN && y >= ROOM_MIN && x < ROOM_MAX && y < ROOM_MAX
+export function isInRoom(at: Coordinates): boolean
+/**
+ * Whether or not this position is inside of a room.
+ * @param x room position x
+ * @param y room position y
+ * @returns Is this position valid room coordinates
+ */
+export function isInRoom(x: number, y: number): boolean
+// eslint-disable-next-line jsdoc/require-jsdoc
+export function isInRoom(at: Coordinates | number, y?: number) {
+  const x = (at as Partial<Coordinates>).x ?? (at as number)
+  y ??= (at as Coordinates).y
+  return x >= ROOM_MIN && y >= ROOM_MIN && x <= ROOM_MAX && y <= ROOM_MAX
 }
 
 /** Object with a {@link RoomPosition} to {@link normalizePos} */
@@ -32,10 +44,35 @@ export type SomeRoomPosition = RoomPosition | _HasRoomPosition
  * @returns The RoomPosition
  */
 export function normalizePos(it: SomeRoomPosition): RoomPosition {
-  if (!(it instanceof RoomPosition)) {
-    return it.pos
-  }
+  if ("pos" in it) return it.pos
   return it
+}
+
+export interface SomeRoomArea {
+  pos: SomeRoomPosition
+  range: number
+}
+export interface RoomArea {
+  pos: RoomPosition
+  range: number
+}
+/**
+ * Extract position and safe range in room from an object
+ * @param it Object with a position and maybe a range
+ * @param defaultRange default range when a position is given
+ * @returns In room area
+ */
+export function normalizeArea(it: SomeRoomPosition | SomeRoomArea, defaultRange = 0): RoomArea {
+  const isArea = "range" in it
+  const pos = normalizePos(isArea ? it.pos : it)
+  const range = min(
+    max(isArea ? it.range : defaultRange, isExit(pos) ? 0 : 1),
+    pos.x,
+    pos.y,
+    ROOM_MAX - pos.x,
+    ROOM_MAX - pos.y
+  )
+  return { pos, range }
 }
 
 const ROOM_REGEX = /^([WE])([0-9]+)([NS])([0-9]+)$/
@@ -105,8 +142,9 @@ export const getRoomCenter = (name: RoomName) =>
  * @returns Chebyshev distance between those points
  */
 export function getChebyshevDist(a: Coordinates, b: Coordinates) {
-  return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y))
+  return max(abs(a.x - b.x), abs(a.y - b.y))
 }
+export const getInRoomRange = getChebyshevDist
 /**
  * Distance when moving only vertically or horizontally.
  * Correct distance for inter room creep movements.
@@ -115,7 +153,7 @@ export function getChebyshevDist(a: Coordinates, b: Coordinates) {
  * @returns Manhattan distance between those points
  */
 export function getManhattanDist(a: Coordinates, b: Coordinates) {
-  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+  return abs(a.x - b.x) + abs(a.y - b.y)
 }
 /**
  * Distance when moving at any angle.
@@ -136,8 +174,8 @@ export function getEuclidDist(a: Coordinates, b: Coordinates) {
 export function getDirectionTo(from: Coordinates, to: Coordinates) {
   const dx = to.x - from.x,
     dy = to.y - from.y
-  const adx = Math.abs(dx),
-    ady = Math.abs(dy)
+  const adx = abs(dx),
+    ady = abs(dy)
   if (adx > ady * 2) return dx > 0 ? RIGHT : LEFT
   if (ady > adx * 2) return dy > 0 ? BOTTOM : TOP
   if (dx > 0 && dy > 0) return BOTTOM_RIGHT
@@ -146,16 +184,6 @@ export function getDirectionTo(from: Coordinates, to: Coordinates) {
   return TOP_LEFT
 }
 
-const DIR_OFFSET: Record<DirectionConstant, Coordinates> = {
-  [TOP]: { x: 0, y: -1 },
-  [TOP_RIGHT]: { x: 1, y: -1 },
-  [RIGHT]: { x: 1, y: 0 },
-  [BOTTOM_RIGHT]: { x: 1, y: 1 },
-  [BOTTOM]: { x: 0, y: 1 },
-  [BOTTOM_LEFT]: { x: -1, y: 1 },
-  [LEFT]: { x: -1, y: 0 },
-  [TOP_LEFT]: { x: -1, y: -1 },
-}
 /**
  * Compute position in a given direction
  * @param pos start position
@@ -164,9 +192,50 @@ const DIR_OFFSET: Record<DirectionConstant, Coordinates> = {
  * @returns destination position
  */
 export function getToDirection(pos: RoomPosition, d: DirectionConstant, n = 1) {
-  const x = pos.x + DIR_OFFSET[d].x * n
-  const y = pos.y + DIR_OFFSET[d].y * n
-  return isInRoom({ x, y }) ? new RoomPosition(x, y, pos.roomName) : undefined
+  const x = pos.x + DIRECTION_OFFSETS[d].x * n
+  const y = pos.y + DIRECTION_OFFSETS[d].y * n
+  return isInRoom(x, y) ? new RoomPosition(x, y, pos.roomName) : undefined
+}
+
+/**
+ * Convert x, y to matrix index
+ * @param at A room position
+ * @returns matrix index
+ */
+export function getMatrixIndex(at: Coordinates): MatrixIndex
+/**
+ * Convert x, y to matrix index
+ * @param x room position x
+ * @param y room position y
+ * @returns matrix index
+ */
+export function getMatrixIndex(x: number, y: number): MatrixIndex
+// eslint-disable-next-line jsdoc/require-jsdoc
+export function getMatrixIndex(at: Coordinates | number, y?: number) {
+  const x = (at as Partial<Coordinates>).x ?? (at as number)
+  y ??= (at as Coordinates).y
+  return (x | 0) * ROOM_SIZE + (y | 0)
+}
+
+/**
+ * Convert matrix index to room coordinates
+ * @param i matrix index
+ * @returns room coordinates
+ */
+export function getMatrixCoords(i: MatrixIndex): Coordinates {
+  const j = i | 0
+  return { x: (j / ROOM_SIZE) | 0, y: j % ROOM_SIZE }
+}
+
+/**
+ * Convert coordinates to room position
+ * @param roomName valid room name
+ * @param p coordinates or matrix index
+ * @returns room position
+ */
+export function getRoomPosition(roomName: string, p: Coordinates | MatrixIndex) {
+  if (typeof p === "number") p = getMatrixCoords(p)
+  return new RoomPosition(p.x, p.y, roomName)
 }
 
 /**
@@ -186,9 +255,7 @@ export function clampInRoom(at: Coordinates): Coordinates {
  * @yields a valid position
  */
 export function* inRoomRange(center: RoomPosition, range = 1) {
-  for (const { x, y } of inRoomRangeXY(center, range)) {
-    yield new RoomPosition(x, y, center.roomName)
-  }
+  for (const c of inRoomRangeXY(center, range)) yield getRoomPosition(center.roomName, c)
 }
 /**
  * List all {@link Coordinates} in a given square clamped to room borders
@@ -197,10 +264,10 @@ export function* inRoomRange(center: RoomPosition, range = 1) {
  * @yields a coordinate in room
  */
 export function* inRoomRangeXY(center: Coordinates, range = 1) {
-  const mx = Math.min(ROOM_MAX, center.x + range)
-  const my = Math.min(ROOM_MAX, center.y + range)
-  for (let x = Math.max(ROOM_MIN, center.x - range); x <= mx; x++) {
-    for (let y = Math.max(ROOM_MIN, center.y - range); y <= my; y++) {
+  const mx = min(ROOM_MAX, center.x + range)
+  const my = min(ROOM_MAX, center.y + range)
+  for (let x = max(ROOM_MIN, center.x - range); x <= mx; x++) {
+    for (let y = max(ROOM_MIN, center.y - range); y <= my; y++) {
       yield { x, y } as Coordinates
     }
   }
@@ -215,10 +282,10 @@ export function* inRoomRangeXY(center: Coordinates, range = 1) {
 export function inRoomRangeArea(center: Coordinates, range = 1): Area {
   const { x, y } = center
   return [
-    Math.max(y - range, ROOM_MIN),
-    Math.max(x - range, ROOM_MIN),
-    Math.min(y + range, ROOM_MAX),
-    Math.min(x + range, ROOM_MAX),
+    max(y - range, ROOM_MIN),
+    max(x - range, ROOM_MIN),
+    min(y + range, ROOM_MAX),
+    min(x + range, ROOM_MAX),
   ]
 }
 
@@ -235,7 +302,7 @@ export function* atRoomRange(center: RoomPosition, range = 1) {
   }
   const { x: cx, y: cy, roomName } = center
   function* send(x: number, y: number) {
-    if (isInRoom({ x, y })) yield new RoomPosition(x, y, roomName)
+    if (isInRoom(x, y)) yield new RoomPosition(x, y, roomName)
   }
   for (let d = -range; d < range; d++) {
     yield* send(cx + d, cy + range)

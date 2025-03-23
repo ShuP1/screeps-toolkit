@@ -175,7 +175,7 @@ export class Profiler {
     showFileDownloadPopup(`callgrind.out.${Game.time}`, this.getCallgrind())
   }
 
-  getOutput(maxStats?: number) {
+  output(maxStats?: number) {
     if (this.data.start === undefined) return "Profiler not active."
 
     const elapsedTicks = Game.time - this.data.start + 1
@@ -185,17 +185,25 @@ export class Profiler {
     if (maxStats) stats.length = maxStats
 
     return [
-      "calls\t\ttime\t\tavg\t\tfunction",
+      "calls\t\ttime\t\tavg\t\tpreTick\t\tfunction",
       ...stats.map(
         ([name, [time, calls]]) =>
-          `${calls}\t\t${time.toFixed(2)}\t\t${(time / calls).toFixed(3)}\t\t${name}`
+          `${calls}\t\t${time.toFixed(2)}\t\t${(time / calls).toFixed(3)}\t\t${(
+            time / elapsedTicks
+          ).toFixed(3)}\t\t${name}`
       ),
       `Ticks: ${elapsedTicks}\tTime: ${totalTime.toFixed(2)}\tPer tick: ${(
         totalTime / elapsedTicks
       ).toFixed(3)}`,
     ].join("\n")
   }
-  output(maxStats?: number) {
-    console.log(this.getOutput(maxStats))
+
+  toString() {
+    return `Profiler:
+    - enable(): start recording
+    - disable(): stop recording
+    - reset(): delete recorded data
+    - output(maxStats?: number): get recording output
+    - callgrind(): download callgrind report`
   }
 }

@@ -29,11 +29,27 @@ export function newDict<K extends string, V>() {
   return {} as Dict<K, V>
 }
 /**
+ * Iterate over {@link Dict} keys
+ * @param d target dict
+ * @returns array of keys
+ */
+export function iterKeys<K extends string, V>(d: Dict<K, V> | Record<K, V>) {
+  return Object.keys(d) as unknown as readonly K[]
+}
+/**
+ * Iterate over {@link Dict} values
+ * @param d target dict
+ * @returns array of values
+ */
+export function iterValues<K extends string, V>(d: Dict<K, V> | Record<K, V>) {
+  return Object.values(d) as unknown as readonly V[]
+}
+/**
  * Iterate over {@link Dict} entries
  * @param d target dict
  * @returns array of key value pairs
  */
-export function iterDict<K extends string, V>(d: Dict<K, V>) {
+export function iterDict<K extends string, V>(d: Dict<K, V> | Record<K, V>) {
   return Object.entries(d) as unknown as readonly [K, V][]
 }
 

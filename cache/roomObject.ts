@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import { RoomName } from "../position/types"
 
 type CacheableObject = RoomObject & _HasId
@@ -67,34 +68,38 @@ export function findCached<
   type: K,
   defaultOpts: CacheOpts<C> &
     Partial<FilterOptions<K, V>> &
-    PartialIfExtends<{ map: (v: V) => Untag<C> }, CachedObject<V>, C>
+    PartialIfExtends<Map<V, Untag<C>>, CachedObject<V>, C>
 ): (name: RoomName, opts?: CacheOpts<C>) => readonly C[] {
   const cache = new Map<RoomName, [at: number, value: readonly C[]]>()
-  const map = (defaultOpts.map ?? (({ id, pos }) => ({ id, pos }))) as (v: V) => C
-  return (name, opts) => {
+  const map = (defaultOpts.map ? defaultOpts.map : ({ id, pos }) => ({ id, pos })) as (v: V) => C
+  const mapAll = defaultOpts.mapAll
+    ? (defaultOpts.mapAll as (vs: V[]) => C[])
+    : (vs: V[]) => vs.map(map)
+  return (name, opts = {}) => {
     const cached = cache.get(name)
     // Return cached if fresh
-    const refresh = opts?.refresh ?? defaultOpts.refresh ?? 0
+    const refresh = opts.refresh || defaultOpts.refresh || 0
     if (cached && Game.time <= cached[0] + refresh) return cached[1]
     // Try to refresh
     if (name in Game.rooms) {
-      const value = Game.rooms[name]
-        .find(type, defaultOpts.filter ? { filter: defaultOpts.filter } : undefined)
-        .map(map)
+      const value = mapAll(
+        Game.rooms[name].find(type, defaultOpts.filter ? { filter: defaultOpts.filter } : undefined)
+      )
       cache.set(name, [Game.time, value])
       return value
     }
     // Return cached if still valid
-    const ttl = opts?.ttl ?? defaultOpts.ttl
+    const ttl = opts.ttl || defaultOpts.ttl
     if (cached && (ttl == undefined || Game.time <= cached[0] + ttl)) return cached[1]
     // Return fallback empty array
-    const fallback = opts?.fallback ?? defaultOpts.fallback
+    const fallback = opts.fallback || defaultOpts.fallback
     if (!fallback) return []
     const fallbackValue = fallback(name)
-    cache.set(name, [Number.NEGATIVE_INFINITY, fallbackValue])
+    cache.set(name, [-32767, fallbackValue])
     return fallbackValue
   }
 }
 
+type Map<U, V> = { map: (u: U) => V; mapAll?: null } | { mapAll: (us: U[]) => V[]; map?: null }
 type PartialIfExtends<T, A, B> = A extends B ? Partial<T> : T
 type Untag<T> = Omit<T, "OpaqueTagSymbol">

@@ -48,9 +48,9 @@ export function isTerrainWalkableAt(p: RoomPosition) {
 export function* getExits(name: RoomName) {
   const t = Game.map.getRoomTerrain(name)
   for (let i = 0; i <= ROOM_MAX; i++) {
-    if (!(t.get(0, i) & TERRAIN_MASK_WALL)) yield { x: 0, y: i }
-    if (!(t.get(i, 0) & TERRAIN_MASK_WALL)) yield { x: i, y: 0 }
-    if (!(t.get(ROOM_MAX, i) & TERRAIN_MASK_WALL)) yield { x: ROOM_MAX, y: i }
-    if (!(t.get(i, ROOM_MAX) & TERRAIN_MASK_WALL)) yield { x: i, y: ROOM_MAX }
+    if (t.get(0, i) != TERRAIN_MASK_WALL) yield { x: 0, y: i }
+    if (t.get(i, 0) != TERRAIN_MASK_WALL) yield { x: i, y: 0 }
+    if (t.get(ROOM_MAX, i) != TERRAIN_MASK_WALL) yield { x: ROOM_MAX, y: i }
+    if (t.get(i, ROOM_MAX) != TERRAIN_MASK_WALL) yield { x: i, y: ROOM_MAX }
   }
 }

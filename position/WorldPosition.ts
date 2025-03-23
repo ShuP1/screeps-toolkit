@@ -10,7 +10,7 @@ import {
 
 /** Uniform screep's world position with E0S0 as origin. */
 export class WorldPosition {
-  constructor(public x: number, public y: number) {}
+  constructor(public readonly x: number, public readonly y: number) {}
 
   /**
    * Extract room name from this.

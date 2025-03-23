@@ -83,19 +83,17 @@ export const getActiveBodypartsBoostEquivalent = (
 type BoostsBodypartType = Record<string, Record<ActionConstant, number>>
 
 /**
- * Gets the move efficiency of a creep based on it's number of move parts and boost relative to it's size.
+ * Gets the move weight of a creep.
  * @param creep target creep or powerCreep
  * @param usedCapacity override the amount of capacity the creep is using
- * @returns the amount of terrain fatigue the creep can handle
+ * @returns the amount of fatigue multiplier
  */
-export function getMoveEfficiency(creep: AnyCreep, usedCapacity = creep.store.getUsedCapacity()) {
-  if (!("body" in creep)) return Infinity // no fatigue! PowerCreep!
-  let activeMoveParts = 0
+export function getCreepMoveWeight(creep: AnyCreep, usedCapacity = creep.store.getUsedCapacity()) {
+  if (!("body" in creep)) return 0 // no fatigue! PowerCreep!
   let nonMoveParts = 0
   for (const b of creep.body) {
     switch (b.type) {
       case MOVE:
-        activeMoveParts += b.hits > 0 ? (b.boost ? BOOSTS[b.type][b.boost].fatigue : 1) : 0
         break
       case CARRY:
         if (usedCapacity > 0 && b.hits > 0) {
@@ -110,6 +108,22 @@ export function getMoveEfficiency(creep: AnyCreep, usedCapacity = creep.store.ge
         break
     }
   }
+  return nonMoveParts
+}
+/**
+ * Gets the move efficiency of a creep based on it's number of move parts and boost relative to it's size.
+ * @param creep target creep or powerCreep
+ * @param usedCapacity override the amount of capacity the creep is using
+ * @returns the amount of terrain fatigue the creep can handle
+ */
+export function getMoveEfficiency(creep: AnyCreep, usedCapacity?: number) {
+  if (!("body" in creep)) return Infinity // no fatigue! PowerCreep!
+  let activeMoveParts = 0
+  for (const b of creep.body) {
+    if (b.hits <= 0) break
+    if (b.type === MOVE) activeMoveParts += b.boost ? BOOSTS[MOVE][b.boost].fatigue : 1
+  }
+  const nonMoveParts = getCreepMoveWeight(creep, usedCapacity)
   if (nonMoveParts) return (activeMoveParts * MOVE_FATIGUE_POWER) / nonMoveParts
   if (activeMoveParts) return Infinity
   return 0

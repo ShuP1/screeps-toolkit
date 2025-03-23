@@ -46,6 +46,7 @@ export function resetGame() {
   for (const f in Game.flags) {
     Game.flags[f].remove()
   }
+  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
   for (const k in Memory) delete Memory[k as keyof Memory]
   RawMemory.set("{}")
   Memory.creeps = {}
